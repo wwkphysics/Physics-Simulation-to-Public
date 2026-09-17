@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An interactive HKDSE Physics simulation of incandescent lamps, gas discharge lamps, LED lamps and solar cells.">
+  <meta name="theme-color" content="#ffffff">
+  <title>Electric Light Lab | HKDSE Physics</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23071425'/%3E%3Cpath d='M21 29a11 11 0 1 1 22 0c0 5-3 7-6 11H27c-3-4-6-6-6-11Z' fill='%23ffd166'/%3E%3Cpath d='M27 45h10M29 50h6' stroke='%236ee7f2' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+  <style>
+:root{--text:#222;--muted:#555;--line:#ccc;--blue:#226bcc;--pink:#d34467}
+*{box-sizing:border-box}html{color-scheme:light}body{margin:0;background:#fff;color:var(--text);font:16px/1.5 Arial,system-ui,sans-serif}button,input,select{font:inherit}button{cursor:pointer;color:inherit}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #555;outline-offset:3px}.shell{max-width:1400px;margin:auto;padding:18px}.topbar{margin-bottom:16px}h1{font-size:26px;margin:0}.eyebrow{font-size:14px;color:#555;margin:0}.mode-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}.mode-tab,.btn,.seg-btn,select{padding:10px 12px;border:1px solid #aaa;border-radius:4px;background:#fff}.mode-tab[aria-selected="true"],.seg-btn[aria-pressed="true"]{background:#eee;border-color:#222;font-weight:bold}.lab{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:20px}.stage{min-width:0}.stage-head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ccc;padding-bottom:8px;gap:10px}.stage-title{margin:0;font-size:20px}.stage-kicker{display:none}.step-count{font-size:14px;white-space:nowrap}.sim-wrap{position:relative}#simView{display:block;width:100%;height:auto}.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:14px;padding:6px 0}.legend span{display:inline-flex;align-items:center;gap:5px}.dot{height:9px;width:9px;border-radius:50%;background:currentColor}.transport,.transport-group{display:flex;gap:8px;flex-wrap:wrap}.transport{padding-top:12px;border-top:1px solid #ccc;justify-content:space-between}.btn:disabled{opacity:.4;cursor:default}.control-block{padding-bottom:16px;border-bottom:1px solid #ccc}.control-block h2{display:none}.control-label{display:flex;justify-content:space-between;gap:10px;margin:10px 0}.segmented{display:flex;gap:5px}.seg-btn{flex:1;padding:8px}.mini-note{font-size:14px;color:#555}input[type=range],select{width:100%;accent-color:#555}.step-explain{padding:16px 0}.number{font-weight:bold;margin-right:8px}#stepHeading{display:inline;font-size:18px}#stepText{margin:8px 0}.svg-label{font:16px Arial,sans-serif;fill:#222}.svg-small{font:14px Arial,sans-serif;fill:#444}.svg-title{font:bold 18px Arial,sans-serif;fill:#222}footer{font-size:14px;color:#666;margin-top:15px}@media(max-width:1000px){.lab{grid-template-columns:1fr}.side-panel{display:grid;grid-template-columns:1fr 1fr;gap:20px}}@media(max-width:600px){.shell{padding:10px}.mode-tabs{grid-template-columns:1fr 1fr}.side-panel{display:block}.btn{padding:8px}#simView{min-width:700px}.sim-wrap{overflow-x:auto}}
+</style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">HKDSE Physics · F.6</p>
+        <h1>Electric Light Lab</h1>
+      </div>
+    </header>
+
+    <nav class="mode-tabs" role="tablist" aria-label="Choose a device">
+      <button class="mode-tab" role="tab" id="tab-incandescent" aria-controls="lab-panel" aria-selected="true" data-mode="incandescent" style="--active:#ffd166">Incandescent lamp</button>
+      <button class="mode-tab" role="tab" id="tab-gas" aria-controls="lab-panel" aria-selected="false" data-mode="gas" style="--active:#b28cff">Gas discharge lamp</button>
+      <button class="mode-tab" role="tab" id="tab-led" aria-controls="lab-panel" aria-selected="false" data-mode="led" style="--active:#6ee7f2">LED lamp</button>
+      <button class="mode-tab" role="tab" id="tab-solar" aria-controls="lab-panel" aria-selected="false" data-mode="solar" style="--active:#72e6a5">Solar cell</button>
+    </nav>
+
+    <main id="lab-panel" role="tabpanel" aria-labelledby="tab-incandescent">
+      <div class="lab">
+        <section class="stage" aria-label="Interactive simulation">
+          <div class="stage-head">
+            <div class="stage-title-wrap">
+              <p class="stage-kicker" id="stageKicker">Heating a metal filament</p>
+              <h2 class="stage-title" id="stageTitle">Incandescent lamp</h2>
+            </div>
+            <div class="step-count" id="stepCount">Step 1 of 3</div>
+          </div>
+          <div class="sim-wrap">
+            <svg id="simView" viewBox="0 0 1000 540" role="img" aria-labelledby="simTitle simDesc"></svg>
+            <div class="legend" id="legend" aria-label="Diagram key"></div>
+          </div>
+          <div class="transport">
+            <div class="transport-group">
+              <button class="btn" id="prevBtn" type="button" aria-label="Previous step">Previous</button>
+              <button class="btn" id="playBtn" type="button">Play</button><button class="btn" id="pauseBtn" type="button">Pause</button>
+              <button class="btn" id="nextBtn" type="button" aria-label="Next step">Next</button>
+            </div>
+            <button class="btn" id="resetBtn" type="button">Reset</button>
+          </div>
+        </section>
+
+        <aside class="side-panel" aria-label="Controls and explanation">
+          <div class="control-block">
+            <h2>Try it</h2>
+            <div id="modeControls"></div>
+          </div>
+
+          <section class="step-explain" aria-live="polite">
+            <span class="number" id="stepNumber">1</span><h2 id="stepHeading">Current heats the filament</h2>
+            <p id="stepText"></p>
+          </section>
+        </aside>
+      </div>
+    </main>
+    <footer>Designed for HKDSE Physics · Particle numbers and motion are simplified; diagrams are not to scale</footer>
+  </div>
+
+  <script>
+    const modes = {
+      incandescent:{title:'Incandescent lamp',kicker:'',legend:[['#226bcc','electron'],['#efb900','visible light (white/yellow glow)']],steps:[
+        ['Current heats the filament to about 2500 °C.',''],
+        ['Electrons absorb energy and jump to different higher energy levels.',''],
+        ['Electrons jump to many different lower levels and emit a continuous spectrum.','Approximately 90–95% of the emission is mainly infra-red radiation; only a small portion is visible light.']]},
+      gas:{title:'Gas discharge lamp',kicker:'',legend:[['#226bcc','electron'],['#8547bd','UV']],steps:[
+        ['High voltage emits and accelerates electrons.',''],
+        ['Electrons ionise the inert gas.',''],
+        ['The current heats the tube and mercury vapourises.',''],
+        ['Collisions excite electrons in mercury atoms.',''],
+        ['Downward jumps emit mainly UV radiation.',''],
+        ['The phosphor absorbs UV and emits white visible light by fluorescence.','']]},
+      led:{title:'LED lamp',kicker:'',legend:[['#226bcc','electron'],['#d34467','hole']],steps:[
+        ['Electrons and holes migrate towards the p–n junction.',''],
+        ['An electron combines with a hole and releases energy as an EM wave.','']]},
+      solar:{title:'Solar cell',kicker:'',legend:[['#226bcc','free electron'],['#d34467','hole']],steps:[
+        ['Sunlight produces free electrons and holes.',''],
+        ['Free electrons migrate to the n-side.',''],
+        ['Holes migrate to the p-side.',''],
+        ['In a complete circuit, electrons flow from the n-side through the load to the p-side.',''],
+        ['A direct current flows in the opposite direction through the load.','']]}
+    };
+
+    const state = { mode: 'incandescent', step: 0, playing: false, timer: null, voltage: 100, gasSupply: 'on', polarity: 'forward', ledColour: 'blue', light: 70, circuit: 'closed' };
+    const els = Object.fromEntries(['simView','legend','stageKicker','stageTitle','stepCount','stepNumber','stepHeading','stepText','modeControls','prevBtn','nextBtn','playBtn','pauseBtn','resetBtn','lab-panel'].map(id => [id, document.getElementById(id)]));
+
+    const esc = s => String(s).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    const photonColour = { red: '#ed3030', green: '#13a344', blue: '#2674ee' };
+    // One clock synchronises particles, energy changes and emitted radiation.
+    let elapsed=0, lastFrame=0, afterglow=0;
+    const clamp=x=>Math.max(0,Math.min(1,x));
+    const lerp=(a,b,t)=>a+(b-a)*clamp(t);
+    const label=(x,y,t,small=false)=>`<text x="${x}" y="${y}" class="${small?'svg-small':'svg-label'}">${t}</text>`;
+    const line=(x,y,X,Y,c='#555',w=2)=>`<path d="M${x} ${y}L${X} ${Y}" fill="none" stroke="${c}" stroke-width="${w}"/>`;
+    const arrow=(x,y,X,Y,c='#444')=>line(x,y,X,Y,c)+`<path d="M-9 -5L0 0L-9 5" fill="none" stroke="${c}" stroke-width="2" transform="translate(${X} ${Y}) rotate(${Math.atan2(Y-y,X-x)*180/Math.PI})"/>`;
+    const carrier=(x,y,h=false)=>`<circle cx="${x}" cy="${y}" r="10" fill="${h?'#fff':'#226bcc'}" stroke="${h?'#d34467':'#226bcc'}" stroke-width="2"/><text x="${x}" y="${y+5}" text-anchor="middle" fill="${h?'#d34467':'white'}" font-size="16">${h?'+':'−'}</text>`;
+    const wave=(x,y,c='#8547bd',opacity=1)=>`<path d="M${x} ${y}q8-12 16 0t16 0t16 0" fill="none" stroke="${c}" stroke-width="5" opacity="${opacity}"/>`;
+    // Rays travel outwards; their colour represents the emitted light.
+    function lightRays(cx,cy,t,colour='#efb900',inner=65,reach=65,count=9){
+      let result='';
+      for(let i=0;i<count;i++){
+        const angle=(-165+i*150/(count-1))*Math.PI/180,phase=(t/1800+i*.17)%1;
+        const r=inner+phase*reach,x=cx+Math.cos(angle)*r,y=cy+Math.sin(angle)*r;
+        const X=cx+Math.cos(angle)*(r+22),Y=cy+Math.sin(angle)*(r+22);
+        result+=`<path d="M${x} ${y}L${X} ${Y}" stroke="${colour}" stroke-width="7" stroke-linecap="round" opacity="${1-phase*.6}"/><path d="M${x} ${y}L${X} ${Y}" stroke="#fffbdc" stroke-width="2" stroke-linecap="round"/>`;
+      }return result;
+    }
+    const atom=(x,y,name)=>`<circle cx="${x}" cy="${y}" r="21" fill="#f5f5f5" stroke="#555"/>${label(x-12,y+5,name,true)}`;
+    const defs=()=>`<defs><linearGradient id="spectrum"><stop stop-color="#7736aa"/><stop offset=".18" stop-color="#3155cf"/><stop offset=".36" stop-color="#29a6d8"/><stop offset=".52" stop-color="#3ab357"/><stop offset=".7" stop-color="#f0dc36"/><stop offset=".85" stop-color="#ed8b2b"/><stop offset="1" stop-color="#d53939"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="5"/></filter></defs>`;
+    function titleDesc(t,d){return `<title id="simTitle">${esc(t)}</title><desc id="simDesc">${esc(d)}</desc>`;}
+    function drawIncandescent(){
+      const on=state.voltage>0,s=state.step,t=elapsed/1000;
+      let out=defs()+titleDesc('Incandescent lamp','Current heats tungsten; closely spaced energy levels allow many different jumps and a continuous spectrum.');
+      // Recognisable glass bulb, coiled tungsten filament, supports and screw base.
+      out+=label(65,30,'Incandescent lamp');
+      if(on)out+=`<ellipse cx="180" cy="180" rx="116" ry="115" fill="#ffdf50" opacity=".18"/><ellipse cx="180" cy="180" rx="78" ry="75" fill="#fff3a8" opacity=".45"/>`;
+      out+=`<path d="M135 280C132 254 65 228 65 155C65 35 295 35 295 155C295 228 228 254 225 280Z" fill="none" stroke="#555" stroke-width="3"/><path d="M85 141Q89 93 128 80" fill="none" stroke="#aaa" stroke-width="3"/><path d="M135 280H225V321L207 338H153L135 321Z" fill="#ddd" stroke="#555" stroke-width="3"/><path d="M137 290L223 282M137 303L223 295M139 316L223 308M154 328H207" stroke="#777" stroke-width="3"/><path d="M165 338H195V346H165Z" fill="#555"/><path d="M147 280L132 187M213 280L228 187" stroke="#666" stroke-width="3"/><path d="M132 187q6-20 12 0t12 0t12 0t12 0t12 0t12 0t12 0t12 0" fill="none" stroke="${on?'#e89d00':'#555'}" stroke-width="5"/>`;
+      out+=label(145,230,'Tungsten',true)+label(145,248,'filament',true);
+      if(on){
+        out+=`<ellipse cx="180" cy="185" rx="55" ry="17" fill="#ffd83d" opacity=".4" filter="url(#glow)"/>`;
+        out+=lightRays(180,180,elapsed,'#efb900',116,40,9);
+        out+=label(80,365,state.voltage===100?'Filament: about 2500 °C':'Electrical energy → heating',true);
+      }else out+=label(120,365,'Supply off',true);
+      out+=label(400,40,'Numerous, closely spaced energy levels');
+      for(let i=0;i<68;i++)out+=line(405,75+i*3.3,915,75+i*3.3,'#999',.65);
+      out+=arrow(950,300,950,72)+label(820,325,'Energy increases ↑',true);
+      for(let i=0;i<7;i++){
+        const x=438+i*68,lo=75+(60-i%3*4)*3.3,hi=75+(5+i*6)*3.3,mid=75+(35+i%4*7)*3.3;
+        let y=lo;
+        if(on&&s===1)y=lerp(lo,hi,((t+i*.23)%3)/1.8);
+        if(on&&s===2){const q=(t+i*.31)%4;y=q<1.6?lerp(lo,hi,q/1.6):q<2.6?lerp(hi,mid,(q-1.6)/1):mid;}
+        out+=carrier(x,y);
+      }
+      if(on&&s===2){
+        out+=label(75,388,'Continuous emission spectrum (schematic)')+`<rect x="80" y="413" width="165" height="40" fill="url(#spectrum)"/><rect x="245" y="413" width="665" height="40" fill="#eee" stroke="#555"/>`;
+        out+=label(85,479,'Violet → red',true)+label(380,438,'Dominant infra-red region: approximately 90–95%')+arrow(80,497,910,497)+label(650,520,'Increasing wavelength →',true);
+      }
+      return out;
+    }
+    function drawGas(){
+      const on=state.gasSupply==='on',s=state.step,q=(elapsed%6000)/6000;
+      let out=defs()+titleDesc('Gas discharge lamp','Electrons ionise argon. Heating vapourises liquid mercury. Collisions excite mercury, which emits UV; phosphor fluoresces white.');
+      out+=`<path d="M25 221H55M25 257H55M565 221H594M565 257H594" stroke="#777" stroke-width="6"/><rect x="45" y="190" width="25" height="100" rx="5" fill="#ddd" stroke="#555"/><rect x="550" y="190" width="25" height="100" rx="5" fill="#ddd" stroke="#555"/><rect x="60" y="100" width="500" height="280" rx="45" fill="#fafafa" stroke="#555" stroke-width="2"/><path d="M100 105H520" stroke="#bbb" stroke-width="9"/>`+label(125,70,'Phosphor coating')+line(230,78,230,104);
+      out+=line(86,215,86,285,'#333',8)+line(535,215,535,285,'#333',8)+label(65,413,'− electrode',true)+label(460,413,'+ electrode',true);
+      const hit=on&&s>=1&&q>.42;
+      out+=atom(255,248,hit?'Ar⁺':'Ar')+atom(385,175,'Ar')+atom(460,300,'Ar');
+      if(on){
+        const x= q<.42?lerp(100,237,Math.pow(q/.42,2)):lerp(237,515,(q-.42)/.58);
+        out+=carrier(x,248);
+        if(hit)out+=carrier(lerp(266,500,(q-.42)/.58),lerp(238,200,(q-.42)/.58));
+      }
+      const vap=on&&s>=2?(s===2?clamp(elapsed/6000):1):0;
+      out+=`<ellipse cx="160" cy="355" rx="${34-22*vap}" ry="${9-4*vap}" fill="#888"/>`+label(88,445,'Liquid mercury (Hg)',true);
+      for(let i=0;i<4;i++){
+        const v=clamp((vap-i*.15)/.45);
+        if(v>0)out+=atom(lerp(160,310+i*49,v),lerp(350,210+i%2*66,v),'Hg');
+      }
+      if(on&&s>=2)out+=label(280,355,'Current heats the tube',true);
+      out+=label(630,55,s<3?'Inert gas ionisation':'Mercury atom: energy levels');
+      if(s<3){
+        out+=atom(785,230,hit?'Ar⁺':'Ar');
+        if(on){out+=carrier(lerp(640,940,q),230);if(hit)out+=carrier(lerp(802,934,(q-.42)/.58),lerp(225,145,(q-.42)/.58));}
+        out+=label(650,325,hit?'Collision releases another electron':'Moving electron approaches Ar',true);
+      }else{
+        out+=`<rect x="655" y="110" width="280" height="245" rx="35" fill="none" stroke="#aaa"/>`+label(670,140,'Hg atom',true)+line(700,190,895,190)+line(700,300,895,300)+label(850,177,'higher',true)+label(850,325,'lower',true);
+        const collision=.3,up=.43,down=.57;
+        if(on){
+          if(q<collision)out+=carrier(lerp(585,766,q/collision),300);
+          else if(q<.55)out+=carrier(lerp(766,940,(q-collision)/.25),lerp(300,350,(q-collision)/.25));
+          let y=300;
+          if(q>=collision)y=s===3?lerp(300,190,(q-collision)/.13):q<up?lerp(300,190,(q-collision)/.13):q<down?190:lerp(190,300,(q-down)/.09);
+          out+=carrier(780,y);
+          if(q>=collision&&q<down)out+=label(705,385,'Excited electron',true);
+          if(s>=4&&q>=down&&q<.85){const u=clamp((q-down)/.28);out+=wave(lerp(770,430,u),lerp(250,107,u),'#8536d1')+label(570,100,'UV',true);}
+          if(s===5&&q>=.85){out+=`<path d="M100 105H520" stroke="#f0dc77" stroke-width="22" filter="url(#glow)"/><path d="M100 105H520" stroke="white" stroke-width="10"/>`+label(140,35,'White visible light');
+            for(let i=0;i<6;i++){
+              const x=125+i*70,y=100-(q-.85)/.15*55;
+              out+=line(x,100,x,y,'#ecd05c',8)+line(x,100,x,y,'#fff',4);
+            }
+            out+=`<rect x="64" y="104" width="492" height="272" rx="43" fill="none" stroke="#fff2a0" stroke-width="8" opacity=".65"/>`;
+          }
+        }else out+=carrier(780,300);
+      }
+      out+=label(80,495,on?'High voltage supplies electrical energy':'High-voltage supply off',true);
+      return out;
+    }
+    function drawLED(){
+      const on=state.polarity==='forward',s=state.step,q=(elapsed%6000)/6000,c=photonColour[state.ledColour];
+      let out=defs()+titleDesc('LED lamp','Forward voltage moves electrons and holes to the junction. They combine, releasing one photon as an electron jumps down.');
+      out+=`<rect x="80" y="105" width="215" height="280" fill="#fce6ec"/><rect x="305" y="105" width="215" height="280" fill="#e3effc"/><rect x="295" y="105" width="10" height="280" fill="#f3cb63"/>`+label(135,145,'p-type layer')+label(355,145,'n-type layer')+label(220,420,'p–n junction')+line(300,390,300,402);
+      const meet=on&&s===1&&q>=.55,move=on?clamp(q/.55):0;
+      if(!meet){out+=carrier(lerp(140,300,move),250,true)+carrier(lerp(460,300,move),250);}
+      if(on&&s===0)out+=arrow(150,310,276,310,'#d34467')+arrow(450,310,324,310,'#226bcc');
+      out+=label(625,80,'Electron energy levels')+line(650,180,925,180)+line(650,320,925,320)+label(840,165,'higher',true)+label(840,345,'lower',true);
+      if(on&&s===1){
+        const drop=clamp((q-.55)/.10);
+        out+=carrier(720,lerp(180,320,drop));
+        if(meet){out+=label(195,350,'Electron and hole combine',true);if(q<.99)out+=wave(lerp(305,540,(q-.55)/.44),lerp(250,60,(q-.55)/.44),c);}
+      }else out+=carrier(720,180);
+      out+=label(80,480,on?'Forward voltage supplies electrical energy':state.polarity==='off'?'Off: no continuous current; no light':'Reverse voltage: no continuous current; no light');
+      out+=label(630,405,'LED package',true);
+      out+=`<path d="M825 467V424a32 32 0 0 1 64 0V467Z" fill="${on&&s===1&&q>=.55?c:'#f4f4f4'}" fill-opacity=".22" stroke="#555" stroke-width="2"/><path d="M821 467H893V475H821Z" fill="#ddd" stroke="#555"/><path d="M844 475V516M872 475V506M844 465V448H864V465" fill="none" stroke="#555" stroke-width="3"/>`;
+      if(on&&s===1&&q>=.55)out+=lightRays(857,428,elapsed,c,38,20,5);
+      out+=label(80,65,'Enlarged p–n junction')+label(630,440,'One colour',true)+label(630,460,'of visible light',true);
+      return out;
+    }
+    function drawSolar(){
+      const lit=state.light>0,closed=state.circuit==='closed',s=state.step;
+      const q=closed?(elapsed%8000)/8000:Math.min(elapsed/8000,.60),flow=closed&&s>=3&&(lit||afterglow>0);
+      let out=defs()+titleDesc('Solar cell','The junction field exists in the dark. Light produces electron–hole pairs, which separate before electrons flow through a closed circuit.');
+      out+=label(790,36,'Solar panel',true)+`<path d="M780 70L940 70L914 142L754 142Z" fill="#eee" stroke="#555" stroke-width="3"/>`;
+      for(let i=1;i<5;i++)out+=line(780+i*32,70,754+i*32,142,'#777',1);
+      for(let i=1;i<3;i++)out+=line(780-i*8.67,70+i*24,940-i*8.67,70+i*24,'#777',1);
+      out+=label(790,165,'Cell cross-section ↓',true);
+      if(lit){out+=`<circle cx="675" cy="73" r="23" fill="#ffe26a" stroke="#d9a500" stroke-width="2"/>`;
+        for(let i=0;i<8;i++){const a=i*Math.PI/4;out+=line(675+Math.cos(a)*29,73+Math.sin(a)*29,675+Math.cos(a)*40,73+Math.sin(a)*40,'#e3b200',3);}
+        out+=arrow(712,72,768,104,'#dda900');
+      }
+      out+=`<rect x="150" y="160" width="340" height="110" fill="#e3effc"/><rect x="150" y="280" width="340" height="110" fill="#fce6ec"/><rect x="150" y="270" width="340" height="10" fill="#f3cb63"/>`+label(175,190,'n-type layer')+label(175,370,'p-type layer')+label(175,420,'p–n junction')+line(160,278,145,415);
+      out+=arrow(115,225,115,325)+label(28,190,'Field',true)+label(18,350,'n → p',true)+label(28,470,'The junction electric field exists even in the dark.',true);
+      out+=line(490,205,690,205)+line(690,205,690,255)+line(690,315,690,365)+line(690,365,590,365)+line(550,365,490,365);
+      out+=line(550,365,590,closed?365:342)+`<rect x="676" y="255" width="28" height="60" fill="white" stroke="#444" stroke-width="2"/>`+label(720,290,'Load',true)+label(535,406,closed?'Closed':'Open',true);
+      if(lit){
+        out+=label(165,45,'Sunlight: energy absorbed by electrons');
+        for(let i=0;i<3;i++)out+=arrow(180+i*90,65,220+i*90,145,'#b79816');
+        const count=1;
+        for(let i=0;i<count;i++){
+          const x=400,absorb=.12;
+          if(q<absorb){out+=wave(x-30,lerp(95,250,q/absorb),'#b79816');continue;}
+          const eMove=s>=1?clamp((q-absorb)/.18):0,hMove=s>=2?clamp((q-.30)/.18):0;
+          const eY=lerp(265,211,eMove),hY=lerp(287,345,hMove);
+          // Charge collects before the first electron leaves the n contact.
+          if(!flow||q<.62){out+=carrier(x,eY)+carrier(x+15,hY,true);}
+          else if(q<.94){out+=carrier(x+15,345,true);}
+        }
+      }else out+=label(175,95,'Dark: no new free-electron–hole pairs');
+      if(flow){
+        const f=lit?clamp((q-.62)/.32):1-afterglow/1200;
+        if((!lit||q>=.62)&&f<1){
+          const pts=[[400,211],[490,205],[690,205],[690,285],[690,365],[490,365],[410,345]],weights=[0,.12,.38,.50,.62,.88,1];
+          let j=0;while(j<weights.length-2&&f>weights[j+1])j++;
+          const u=(f-weights[j])/(weights[j+1]-weights[j]);out+=carrier(lerp(pts[j][0],pts[j+1][0],u),lerp(pts[j][1],pts[j+1][1],u));
+          if(!lit)out+=carrier(410,345,true);
+        }
+        if(lit&&q>=.94)out+=label(325,330,'Combine',true);
+        if(s===4&&(!lit||q>=.62)&&q<.94){out+=arrow(750,350,750,215)+label(780,225,'Conventional',true)+label(780,245,'current',true)+label(780,265,'p → n',true);}
+        out+=label(720,325,'Electrons: n → p',true);
+      }
+      out+=label(165,515,!lit?(afterglow>0?'Remaining charges discharge through the load.':'No external current.') :!closed?'Charges remain separated; no continuous external current.':s<3||q<.62?'Charges separate and collect before external current flows.':'Electrons pass through the load and combine with holes at the p-side.',true);
+      return out;
+    }
+
+    function controlsHTML() {
+      if (state.mode==='incandescent') return `<div class="control-label"><label for="voltage">Applied voltage</label><span class="control-value" id="voltageValue">${state.voltage}%</span></div><input id="voltage" type="range" min="0" max="100" value="${state.voltage}"><p class="mini-note">Higher voltage gives a larger current and a hotter filament.</p>`;
+      if (state.mode==='gas') return `<div class="control-label"><span>High-voltage supply</span><span class="control-value">${state.gasSupply}</span></div><div class="segmented two" aria-label="High-voltage supply">${['off','on'].map(v=>`<button type="button" class="seg-btn" data-gas-supply="${v}" aria-pressed="${state.gasSupply===v}">${v.toUpperCase()}</button>`).join('')}</div><p class="mini-note">A high voltage emits and accelerates electrons through the gas.</p>`;
+      if (state.mode==='led') return `<div class="control-label"><span>Connection</span><span class="control-value">${state.polarity}</span></div><div class="segmented" aria-label="LED connection">${['forward','off','reverse'].map(v=>`<button type="button" class="seg-btn" data-polarity="${v}" aria-pressed="${state.polarity===v}">${v[0].toUpperCase()+v.slice(1)}</button>`).join('')}</div><div class="control-label" style="margin-top:14px"><label for="ledColour">Junction material</label><span class="control-value">light colour</span></div><select id="ledColour"><option value="red" ${state.ledColour==='red'?'selected':''}>Material R · red</option><option value="green" ${state.ledColour==='green'?'selected':''}>Material G · green</option><option value="blue" ${state.ledColour==='blue'?'selected':''}>Material B · blue</option></select><p class="mini-note">White LED lamps use RGB LEDs or a phosphor coating.</p>`;
+      return `<div class="control-label"><label for="light">Light intensity</label><span class="control-value" id="lightValue">${state.light}%</span></div><input id="light" type="range" min="0" max="100" value="${state.light}"><div class="control-label" style="margin-top:14px"><span>External circuit</span><span class="control-value">${state.circuit}</span></div><div class="segmented two" aria-label="External circuit">${['open','closed'].map(v=>`<button type="button" class="seg-btn" data-circuit="${v}" aria-pressed="${state.circuit===v}">${v[0].toUpperCase()+v.slice(1)}</button>`).join('')}</div><p class="mini-note">A complete circuit allows electrons to flow through the load.</p>`;
+    }
+
+    function attachControls() {
+      const $ = id => document.getElementById(id);
+      if ($('voltage')) $('voltage').addEventListener('input', e => { state.voltage=+e.target.value; $('voltageValue').textContent=state.voltage+'%'; renderDiagram(); });
+      if ($('light')) $('light').addEventListener('input', e => { const old=state.light; state.light=+e.target.value; if(old>0&&state.light===0)afterglow=state.circuit==='closed'&&state.step>=3?1200:0; if(old===0&&state.light>0)elapsed=0; $('lightValue').textContent=state.light+'%'; renderDiagram(); });
+      if ($('ledColour')) $('ledColour').addEventListener('change', e => { state.ledColour=e.target.value; renderDiagram(); });
+      document.querySelectorAll('[data-polarity]').forEach(b=>b.addEventListener('click',()=>{state.polarity=b.dataset.polarity; elapsed=0; renderControls(); renderDiagram();}));
+      document.querySelectorAll('[data-gas-supply]').forEach(b=>b.addEventListener('click',()=>{state.gasSupply=b.dataset.gasSupply; elapsed=0; renderControls(); renderDiagram();}));
+      document.querySelectorAll('[data-circuit]').forEach(b=>b.addEventListener('click',()=>{state.circuit=b.dataset.circuit; elapsed=0; renderControls(); renderDiagram();}));
+    }
+
+    function renderControls() { els.modeControls.innerHTML=controlsHTML(); attachControls(); }
+    function renderDiagram() {
+      const html = state.mode==='incandescent'?drawIncandescent():state.mode==='gas'?drawGas():state.mode==='led'?drawLED():drawSolar();
+      els.simView.innerHTML=html;
+      els.simView.classList.toggle('paused',!state.playing);
+    }
+    function renderLegend() { els.legend.innerHTML=modes[state.mode].legend.map(([c,t])=>`<span style="color:${c}"><i class="dot"></i><span style="color:#333">${esc(t)}</span></span>`).join(''); }
+    function renderStep() {
+      const m=modes[state.mode], step=m.steps[state.step];
+      els.stageKicker.textContent=m.kicker; els.stageTitle.textContent=m.title;
+      els.stepCount.textContent=`Step ${state.step+1} of ${m.steps.length}`;
+      els.stepNumber.textContent=state.step+1; els.stepHeading.textContent=step[0]; els.stepText.textContent=step[1];
+      els.prevBtn.disabled=state.step===0; els.nextBtn.disabled=state.step===m.steps.length-1;
+      renderDiagram();
+    }
+    function setStep(n) {state.step=Math.max(0,Math.min(modes[state.mode].steps.length-1,n));elapsed=state.mode==='gas'&&state.step===5?5500:state.mode==='gas'&&state.step===4?4400:state.mode==='led'&&state.step===1?4200:state.mode==='incandescent'&&state.step===2?2500:0;afterglow=0;renderStep();}
+    function stopPlay(){state.playing=false;}
+    function togglePlay(){state.playing=true;}
+    function animate(now){
+      const dt=lastFrame?Math.min(now-lastFrame,80):0;lastFrame=now;
+      if(state.playing){
+        elapsed+=dt;afterglow=Math.max(0,afterglow-dt);
+        const duration=state.mode==='solar'?8000:6000;
+        if(elapsed>=duration&&state.step<modes[state.mode].steps.length-1){state.step++;elapsed=0;renderStep();}
+        else renderDiagram();
+      }
+      requestAnimationFrame(animate);
+    }
+    function resetMode() {
+      stopPlay(); state.step=0; elapsed=0; afterglow=0;
+      if(state.mode==='incandescent') state.voltage=100;
+      if(state.mode==='gas') state.gasSupply='on';
+      if(state.mode==='led'){state.polarity='forward';state.ledColour='blue';}
+      if(state.mode==='solar'){state.light=70;state.circuit='closed';}
+      renderControls(); renderStep();
+    }
+    function setMode(mode) {
+      stopPlay(); state.mode=mode; state.step=0; elapsed=0; afterglow=0;
+      const m=modes[mode];
+      document.querySelectorAll('.mode-tab').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.mode===mode)));
+      els['lab-panel'].setAttribute('aria-labelledby','tab-'+mode);
+      renderControls(); renderLegend(); renderStep();
+    }
+
+    document.querySelectorAll('.mode-tab').forEach(tab=>{
+      tab.addEventListener('click',()=>setMode(tab.dataset.mode));
+      tab.addEventListener('keydown',e=>{
+        if(!['ArrowLeft','ArrowRight'].includes(e.key)) return;
+        e.preventDefault(); const all=[...document.querySelectorAll('.mode-tab')], i=all.indexOf(tab), d=e.key==='ArrowRight'?1:-1, next=all[(i+d+all.length)%all.length]; next.focus(); setMode(next.dataset.mode);
+      });
+    });
+    els.prevBtn.addEventListener('click',()=>{stopPlay();setStep(state.step-1)});
+    els.nextBtn.addEventListener('click',()=>{stopPlay();setStep(state.step+1)});
+    els.playBtn.addEventListener('click',togglePlay);
+    els.pauseBtn.addEventListener('click',stopPlay);
+    els.resetBtn.addEventListener('click',resetMode);
+    setMode('incandescent');
+    requestAnimationFrame(animate);
+
+  </script>
+</body>
+</html>
