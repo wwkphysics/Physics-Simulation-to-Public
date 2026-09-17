@@ -1,104 +1,379 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Physics Simulation by WWK</title>
-    <style>
-        /* 1. GLOBAL STYLES: Sets the font and background */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Modern font */
-            margin: 0;
-            padding: 0;
-            /* A professional gradient background (Blue to Purple) */
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh; /* Ensures bg covers whole screen */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interactive simulations organised according to Oxford Physics at Work for HKDSE.">
+  <meta name="theme-color" content="#102a43">
+  <title>HKDSE Physics Simulations | WWK</title>
+  <style>
+    :root {
+      --navy: #102a43;
+      --blue: #2f6fdf;
+      --ink: #17212b;
+      --muted: #64748b;
+      --line: #dce4ee;
+      --paper: #ffffff;
+      --background: #f4f7fb;
+      --soft-blue: #edf4ff;
+      --radius: 18px;
+    }
 
-        /* 2. THE CONTAINER: The white box in the middle */
-        .container {
-            background-color: #ffffff;
-            width: 90%;
-            max-width: 600px; /* Keeps it from getting too wide on big screens */
-            padding: 40px;
-            border-radius: 15px; /* Rounded corners */
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2); /* Drop shadow for depth */
-            text-align: center;
-        }
+    * { box-sizing: border-box; }
 
-        /* 3. TYPOGRAPHY */
-        h1 {
-            color: #333;
-            margin-top: 0;
-            font-size: 2.2em;
-            margin-bottom: 10px;
-        }
-        
-        .subtitle {
-            color: #666;
-            font-size: 1.1em;
-            margin-bottom: 30px;
-        }
+    html { scroll-behavior: smooth; }
 
-        /* 4. BUTTON LINKS: Making the links look professional */
-        .link-card {
-            display: block; /* Makes the whole area clickable */
-            background-color: #f8f9fa; /* Light grey background */
-            color: #333; /* Dark text */
-            padding: 15px 20px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            text-decoration: none; /* Removes the underline */
-            font-weight: 600;
-            transition: all 0.3s ease; /* Smooth animation */
-            border-left: 5px solid #667eea; /* A colorful accent strip on the left */
-            text-align: left;
-        }
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+    }
 
-        /* 5. HOVER EFFECT: What happens when mouse goes over link */
-        .link-card:hover {
-            background-color: #667eea; /* Turns blue/purple */
-            color: white; /* Text turns white */
-            transform: translateY(-3px); /* Moves up slightly */
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
+    a { color: inherit; }
 
-        /* Optional: Style for a banner image */
-        .banner-img {
-            width: 100%;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-    </style>
+    .hero {
+      position: relative;
+      overflow: hidden;
+      background: var(--navy);
+      color: white;
+    }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 50%;
+    }
+
+    .hero::before { width: 360px; height: 360px; right: -120px; top: -210px; }
+    .hero::after { width: 230px; height: 230px; right: 80px; bottom: -180px; }
+
+    .hero-inner,
+    main,
+    footer {
+      width: min(1120px, calc(100% - 40px));
+      margin-inline: auto;
+    }
+
+    .hero-inner { position: relative; padding: 28px 0 56px; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 54px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 750;
+      letter-spacing: .01em;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 38px;
+      height: 38px;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.35);
+      border-radius: 12px;
+      background: rgba(255,255,255,.1);
+      font: 700 19px Georgia, serif;
+    }
+
+    .author { color: #b9c9d8; font-size: .9rem; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 16px;
+      color: #a9c8ff;
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 28px;
+      height: 2px;
+      background: #78a9ff;
+    }
+
+    h1 {
+      max-width: 720px;
+      margin: 0;
+      font-size: clamp(2.25rem, 6vw, 4.4rem);
+      line-height: 1.04;
+      letter-spacing: -.045em;
+    }
+
+    .intro {
+      max-width: 680px;
+      margin: 20px 0 0;
+      color: #cbd8e5;
+      font-size: clamp(1rem, 2vw, 1.15rem);
+    }
+
+    .summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 26px;
+    }
+
+    .summary span {
+      padding: 7px 12px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 999px;
+      background: rgba(255,255,255,.07);
+      color: #dce8f4;
+      font-size: .87rem;
+    }
+
+    main { padding: 54px 0 64px; }
+
+    .part + .part { margin-top: 56px; }
+
+    .part-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .part-heading h2 { margin: 0; font-size: 1.45rem; letter-spacing: -.02em; }
+    .part-heading p { margin: 0; color: var(--muted); font-size: .92rem; }
+
+    .book-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .book {
+      --accent: #8091a5;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--accent);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: 0 8px 26px rgba(37, 56, 88, .05);
+    }
+
+    .book[data-book="1"] { --accent: #e08a35; }
+    .book[data-book="2"] { --accent: #3977d4; }
+    .book[data-book="3"] { --accent: #7357c8; }
+    .book[data-book="4"] { --accent: #2a9a8b; }
+    .book[data-book="5"] { --accent: #cf5967; }
+    .book[data-book="E2"] { --accent: #2f6fdf; }
+    .book[data-book="E3"] { --accent: #c47b18; }
+
+    .book-head {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 22px 22px 18px;
+    }
+
+    .book-code {
+      display: grid;
+      flex: 0 0 48px;
+      height: 48px;
+      place-items: center;
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--accent) 12%, white);
+      color: var(--accent);
+      font-size: .8rem;
+      font-weight: 850;
+    }
+
+    .book-title { min-width: 0; }
+    .book-title h3 { margin: 0; font-size: 1.08rem; letter-spacing: -.01em; }
+    .book-title p { margin: 3px 0 0; color: var(--muted); font-size: .88rem; }
+
+    .sim-list { display: grid; gap: 1px; background: var(--line); border-top: 1px solid var(--line); }
+
+    .simulation {
+      display: grid;
+      grid-template-columns: 44px 1fr auto;
+      align-items: center;
+      gap: 14px;
+      min-height: 86px;
+      padding: 15px 20px;
+      background: white;
+      text-decoration: none;
+      transition: background .18s ease, color .18s ease;
+    }
+
+    .simulation:hover,
+    .simulation:focus-visible { background: var(--soft-blue); outline: none; }
+
+    .sim-icon {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border: 1px solid color-mix(in srgb, var(--accent) 22%, white);
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--accent) 8%, white);
+      color: var(--accent);
+      font: 700 1.15rem Georgia, serif;
+    }
+
+    .sim-name { display: block; font-weight: 720; line-height: 1.3; }
+    .sim-note { display: block; margin-top: 3px; color: var(--muted); font-size: .82rem; }
+    .arrow { color: var(--accent); font-size: 1.25rem; transition: transform .18s ease; }
+    .simulation:hover .arrow { transform: translateX(3px); }
+
+    .empty {
+      margin: 0 22px 22px;
+      padding: 13px 15px;
+      border: 1px dashed #cfd9e5;
+      border-radius: 12px;
+      background: #f8fafc;
+      color: #7b8999;
+      font-size: .88rem;
+      text-align: center;
+    }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 24px 0 36px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .85rem;
+    }
+
+    @media (max-width: 720px) {
+      .hero-inner, main, footer { width: min(100% - 28px, 1120px); }
+      .hero-inner { padding-bottom: 42px; }
+      .topbar { margin-bottom: 38px; }
+      .book-grid { grid-template-columns: 1fr; }
+      .part-heading { align-items: start; flex-direction: column; gap: 4px; }
+      footer { flex-direction: column; gap: 4px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
 </head>
 <body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="topbar">
+        <div class="brand"><span class="brand-mark">φ</span><span>WWK Physics</span></div>
+        <div class="author">Created by WWK</div>
+      </div>
+      <p class="eyebrow">HKDSE learning resources</p>
+      <h1>Interactive Physics Simulations</h1>
+      <p class="intro">Explore physics concepts through focused, interactive models, organised according to Oxford Physics at Work for HKDSE.</p>
+      <div class="summary" aria-label="Collection summary">
+        <span>5 simulations</span>
+        <span>Core and elective topics</span>
+        <span>Works in a web browser</span>
+      </div>
+    </div>
+  </header>
 
-    <div class="container">
-        <h1>Physics Simulation</h1>
-        <p class="subtitle">created by WWK</p>
-        
-        <hr style="border: 0; height: 1px; background: #eee; margin-bottom: 25px;">
+  <main>
+    <section class="part" aria-labelledby="core-heading">
+      <div class="part-heading">
+        <h2 id="core-heading">Compulsory Part</h2>
+        <p>Books 1–5</p>
+      </div>
+      <div class="book-grid">
+        <article class="book" data-book="1">
+          <div class="book-head"><span class="book-code">BOOK 1</span><div class="book-title"><h3>Heat and Gases</h3><p>Thermal physics and gas behaviour</p></div></div>
+          <p class="empty">Simulations coming soon</p>
+        </article>
 
+        <article class="book" data-book="2">
+          <div class="book-head"><span class="book-code">BOOK 2</span><div class="book-title"><h3>Force and Motion</h3><p>Mechanics and motion</p></div></div>
+          <p class="empty">Simulations coming soon</p>
+        </article>
 
-        <a href="HKDSE_Electric_Light_Lab.html" class="link-card">
-            Lighting Devices and Solar Cell
-        </a>
+        <article class="book" data-book="3">
+          <div class="book-head"><span class="book-code">BOOK 3</span><div class="book-title"><h3>Wave Motion</h3><p>Light, waves and optics</p></div></div>
+          <div class="sim-list">
+            <a class="simulation" href="WWK_Diffraction-Grating.html">
+              <span class="sim-icon" aria-hidden="true">λ</span>
+              <span><span class="sim-name">Diffraction Grating</span><span class="sim-note">Patterns, wavelength and grating spacing</span></span>
+              <span class="arrow" aria-hidden="true">→</span>
+            </a>
+            <a class="simulation" href="WWK_Image-formed-by-convex%20lens.html">
+              <span class="sim-icon" aria-hidden="true">◐</span>
+              <span><span class="sim-name">Image Formed by a Convex Lens</span><span class="sim-note">Ray paths and image properties</span></span>
+              <span class="arrow" aria-hidden="true">→</span>
+            </a>
+          </div>
+        </article>
 
-        <a href="WWK_Diffraction-Grating.html" class="link-card">
-            Diffraction Grating
-        </a>
-        
-        <a href="WWK_Image-formed-by-convex lens.html" class="link-card">
-            Image formed by convex lens
-        </a>
+        <article class="book" data-book="4">
+          <div class="book-head"><span class="book-code">BOOK 4</span><div class="book-title"><h3>Electricity and Magnetism</h3><p>Circuits, fields and induction</p></div></div>
+          <p class="empty">Simulations coming soon</p>
+        </article>
 
-        <a href="WWK_Photoelectric effect.html" class="link-card">
-            Photoelectric effect
-        </a>
-           </div>
+        <article class="book" data-book="5">
+          <div class="book-head"><span class="book-code">BOOK 5</span><div class="book-title"><h3>Radioactivity and Nuclear Energy</h3><p>Radiation and the atomic nucleus</p></div></div>
+          <p class="empty">Simulations coming soon</p>
+        </article>
+      </div>
+    </section>
 
+    <section class="part" aria-labelledby="elective-heading">
+      <div class="part-heading">
+        <h2 id="elective-heading">Elective Part</h2>
+        <p>Books E2 and E3</p>
+      </div>
+      <div class="book-grid">
+        <article class="book" data-book="E2">
+          <div class="book-head"><span class="book-code">BOOK E2</span><div class="book-title"><h3>Atomic World</h3><p>Quantum phenomena and atomic models</p></div></div>
+          <div class="sim-list">
+            <a class="simulation" href="WWK_Photoelectric%20effect.html">
+              <span class="sim-icon" aria-hidden="true">hν</span>
+              <span><span class="sim-name">Photoelectric Effect</span><span class="sim-note">Frequency, intensity and electron emission</span></span>
+              <span class="arrow" aria-hidden="true">→</span>
+            </a>
+            <a class="simulation" href="WWK_Bohr%20model.html">
+              <span class="sim-icon" aria-hidden="true">n</span>
+              <span><span class="sim-name">Bohr Model</span><span class="sim-note">Energy levels and electron transitions</span></span>
+              <span class="arrow" aria-hidden="true">→</span>
+            </a>
+          </div>
+        </article>
+
+        <article class="book" data-book="E3">
+          <div class="book-head"><span class="book-code">BOOK E3</span><div class="book-title"><h3>Energy and Use of Energy</h3><p>Energy applications and technology</p></div></div>
+          <div class="sim-list">
+            <a class="simulation" href="HKDSE_Electric_Light_Lab.html">
+              <span class="sim-icon" aria-hidden="true">☼</span>
+              <span><span class="sim-name">Lighting Devices and Solar Cells</span><span class="sim-note">Incandescent, gas discharge, LED and solar cell</span></span>
+              <span class="arrow" aria-hidden="true">→</span>
+            </a>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>HKDSE Physics interactive learning resources</span>
+    <span>Created by WWK</span>
+  </footer>
 </body>
 </html>
