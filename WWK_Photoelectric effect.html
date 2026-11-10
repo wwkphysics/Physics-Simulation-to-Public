@@ -9,33 +9,32 @@
     :root { color-scheme: light; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #172a43; background: #f4f7fb; }
     * { box-sizing: border-box; }
     body { margin: 0; line-height: 1.5; }
-    header { max-width: 1440px; margin: auto; padding: 22px 24px 16px; }
+    header { max-width: 1180px; margin: auto; padding: 14px 18px 12px; }
     h1 { font-size: clamp(1.6rem, 3vw, 2.1rem); margin: 5px 0; line-height: 1.2; }
     h2 { font-size: 1rem; margin: 0 0 16px; }
     p { margin: 8px 0; }
     .subtitle, .note { color: #52657d; }
-    .view-switch { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .view-switch { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center; }
     .view-switch button[aria-pressed="true"] { background: #172a43; color: white; border-color: #172a43; }
     body[data-view="observation"] .particle-only, body[data-view="particles"] .observation-only { display: none !important; }
-    body[data-view="observation"] main { grid-template-columns: minmax(360px, 1fr) 300px; grid-template-areas: "apparatus controls"; max-width: 1080px; }
+    [hidden] { display: none !important; }
     #observationStatus { padding: 8px 12px; color: #dbe7f7; font-size: .9rem; }
     .note { font-size: .8rem; }
-    main { display: grid; grid-template-columns: 280px minmax(360px, 1fr) 300px; grid-template-areas: "values apparatus controls"; gap: 1px; max-width: 1440px; margin: 0 auto; border: 1px solid #d9e2ee; background: #d9e2ee; border-radius: 14px; overflow: hidden; }
-    .panel { padding: 22px; background: white; }
-    .values { grid-area: values; }
+    main { display: grid; grid-template-columns: minmax(0, 1fr) 300px; grid-template-areas: "apparatus controls"; gap: 1px; max-width: 1180px; margin: 0 auto; border: 1px solid #d9e2ee; background: #d9e2ee; border-radius: 14px; overflow: hidden; }
+    .panel { padding: 18px; background: white; }
     .controls { grid-area: controls; }
-    .apparatus { grid-area: apparatus; background: #101b30; color: #eef5ff; margin: 0; padding: 16px; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
-    .apparatus svg { display: block; width: 100%; height: auto; }
+    .apparatus { grid-area: apparatus; background: #101b30; color: #eef5ff; margin: 0; padding: 10px 16px; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+    .apparatus svg { display: block; width: 100%; height: min(440px, 60vh); min-height: 320px; }
     figcaption { color: #bccde2; font-size: .78rem; padding: 8px 12px; }
     dl { margin: 0; }
     .readout { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; border-bottom: 1px solid #e5ebf3; font-size: .83rem; }
     dt { color: #52657d; }
     dd { margin: 0; white-space: nowrap; font-weight: 700; font-variant-numeric: tabular-nums; }
-    #status { background: #edf4ff; border-left: 3px solid #2f6fdf; font-size: .85rem; padding: 10px; min-height: 68px; margin: 16px 0 20px; }
-    .graph { width: 100%; background: #f8fafd; border: 1px solid #d9e2ee; border-radius: 6px; }
-    .field { margin-bottom: 22px; }
+    #status { color: #dbe7f7; font-size: .85rem; padding: 4px 12px; margin: 0; }
+    .graph { width: 100%; max-width: 520px; background: #f8fafd; border: 1px solid #d9e2ee; border-radius: 6px; }
+    .field { margin-bottom: 12px; }
     label { font-weight: 650; font-size: .9rem; display: block; }
-    .label-row { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; margin-bottom: 8px; }
+    .label-row { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; margin-bottom: 3px; }
     output { font-variant-numeric: tabular-nums; font-weight: 700; color: #245cc0; }
     select, input[type=number] { width: 100%; padding: 9px; border: 1px solid #a7b8cc; border-radius: 6px; background: white; color: #172a43; font: inherit; }
     input[type=range] { width: 100%; height: 28px; margin: 2px 0; accent-color: #2f6fdf; cursor: pointer; }
@@ -52,12 +51,26 @@
     .guide { margin: 12px 0 0; padding-left: 19px; font-size: .84rem; }
     .guide li { margin: 7px 0; }
     #referenceLabel { min-height: 2.5em; font-size: .75rem; color: #7b4d12; }
-    .model-note { max-width: 1440px; margin: auto; padding: 16px 24px 24px; font-size: .82rem; color: #52657d; }
+    .model-note { max-width: 1180px; margin: auto; padding: 12px 18px 20px; font-size: .82rem; color: #52657d; }
     .model-note strong { color: #263d59; }
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-    @media (max-width: 1050px) { main { grid-template-columns: minmax(300px, 1fr) 300px; grid-template-areas: "apparatus controls" "values values"; margin: 0 12px; } .values { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; } }
-    @media (max-width: 700px) { header { padding: 18px; } main { grid-template-columns: minmax(0, 1fr); grid-template-areas: "controls" "apparatus" "values"; } .values { display: block; } .panel { padding: 18px; } .apparatus { padding: 6px; } .graph-section { margin-top: 22px; } }
-    @media (max-width: 700px) { body[data-view="observation"] main { grid-template-columns: minmax(0, 1fr); grid-template-areas: "controls" "apparatus"; } }
+    .supplement { max-width: 1180px; margin: 14px auto 0; padding: 20px; border: 1px solid #d9e2ee; border-radius: 12px; background: white; }
+    .energy-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .energy-grid .readout { display: block; border: 1px solid #dce5f1; border-radius: 8px; padding: 14px; background: #f8fafd; }
+    .energy-grid dd { font-size: 1.35rem; margin-top: 6px; }
+    .energy-equation { font-size: 1.15rem; text-align: center; margin: 16px 0; }
+    details { margin-top: 10px; }
+    summary { cursor: pointer; font-weight: 650; color: #365372; padding: 5px 0; }
+    details dl { max-width: 420px; }
+    .graph-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(220px, 1fr); gap: 24px; align-items: center; }
+    .reveal-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 14px; }
+    .reveal-tools button[aria-expanded="true"] { background: #edf4ff; border-color: #245cc0; }
+    .controls .note { margin: 5px 0; }
+    .controls h2 { margin-bottom: 10px; }
+    .voltage-entry { margin-top: 5px; }
+    .model-note .guide { margin-bottom: 14px; }
+    @media (max-width: 1210px) { main, .supplement { margin-left: 12px; margin-right: 12px; } }
+    @media (max-width: 700px) { header { padding: 14px; } main { grid-template-columns: minmax(0, 1fr); grid-template-areas: "apparatus" "controls"; } .panel { padding: 16px; } .apparatus { padding: 6px; } .apparatus svg { height: auto; min-height: 0; } .energy-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .graph-layout { grid-template-columns: minmax(0, 1fr); gap: 10px; } .supplement { padding: 16px; } }
   </style>
 </head>
 <body data-view="observation">
@@ -84,40 +97,28 @@
           <option value="6.35">Platinum (Pt)</option>
           <option value="2.00">Model metal A</option>
         </select>
-        <p class="note particle-only">Work functions are model values; actual surfaces may differ.</p>
       </div>
       <div class="field">
         <div class="label-row"><label for="wavelength">Wavelength, λ</label><output id="wavelengthValue" for="wavelength">400 nm</output></div>
         <div class="spectrum" aria-hidden="true"></div>
         <input id="wavelength" type="range" min="100" max="850" step="1" value="400">
         <div class="scale"><span>100 nm · UV</span><span>850 nm · IR</span></div>
-        <p class="note">Visible colours are approximate. UV and IR use false colours.</p>
       </div>
       <div class="field">
         <div class="label-row"><label id="lightLevelLabel" for="flux">Light intensity</label><output id="fluxValue" for="flux">50%</output></div>
         <input id="flux" type="range" min="0" max="100" step="1" value="50">
-        <p class="note observation-only">Compare light intensity at a fixed wavelength.</p>
-        <p class="note particle-only">At a fixed frequency, increasing light intensity increases the photon arrival rate.</p>
       </div>
       <div class="field">
         <div class="label-row"><label for="voltage">Collector voltage, V</label><output id="voltageValue" for="voltage voltageNumber">0.00 V</output></div>
         <input id="voltage" type="range" min="-12" max="8" step="0.01" value="0">
         <div class="scale"><span>−12 V · retarding</span><span>+8 V · accelerating</span></div>
         <div class="voltage-entry"><label class="sr-only" for="voltageNumber">Enter collector voltage in volts</label><input id="voltageNumber" type="number" min="-12" max="8" step="0.01" value="0.00"><span>V</span></div>
-        <p class="note">V = potential of collector − potential of target.</p>
-        <button id="setStopping" class="particle-only">Set V = −Vₛ</button>
       </div>
       <div class="buttons"><button id="pause" class="primary particle-only">Pause animation</button><button id="reset">Reset</button></div>
-      <ul class="guide observation-only">
-        <li>Choose a wavelength and observe the current.</li>
-        <li>Change the light intensity while keeping wavelength fixed.</li>
-        <li>Vary the collector voltage. When does the current fall to zero?</li>
-      </ul>
-      <ul class="guide particle-only">
-        <li>Increase wavelength until emission stops.</li>
-        <li>Keep wavelength fixed. Change photon arrival rate and compare the saturation current.</li>
-        <li>Apply a retarding voltage to find the stopping potential.</li>
-      </ul>
+      <div class="reveal-tools particle-only" aria-label="Reveal explanations">
+        <button id="energyToggle" aria-expanded="false" aria-controls="energyPanel">Show energy</button>
+        <button id="graphToggle" aria-expanded="false" aria-controls="graphPanel">Show I–V graph</button>
+      </div>
     </section>
     <figure class="apparatus">
       <svg id="apparatus" viewBox="0 0 700 560" role="img" aria-labelledby="apparatusTitle apparatusDesc">
@@ -145,26 +146,34 @@
         <text id="meter" x="375" y="405" text-anchor="middle" fill="#7bd9ff" font-size="20" font-weight="700">50.0 units</text>
       </svg>
       <p id="observationStatus" class="observation-only" role="status"></p>
-      <figcaption class="observation-only">Continuous light illuminates the target. The ammeter shows the steady current. Apparatus dimensions are not to scale.</figcaption>
-      <figcaption class="particle-only">Blue dots represent electrons; coloured dots represent photons. Animation is slowed down. Particle sizes and apparatus dimensions are not to scale.</figcaption>
+      <p id="status" class="particle-only" role="status"></p>
+      <figcaption class="observation-only">Continuous light illuminates the target. The ammeter shows the steady current.</figcaption>
+      <figcaption class="particle-only">Coloured dots: photons · Blue dots: electrons · Animation slowed down.</figcaption>
     </figure>
-    <section class="panel values particle-only" aria-label="Calculated values and current–voltage graph">
-      <div>
-        <h2>Calculated values</h2>
-        <dl>
+  </main>
+    <section id="energyPanel" class="supplement particle-only" aria-labelledby="energyHeading" hidden>
+        <h2 id="energyHeading">Energy of the emitted electrons</h2>
+        <dl class="energy-grid">
           <div class="readout"><dt>Photon energy, hf</dt><dd id="photonEnergy">3.10 eV</dd></div>
           <div class="readout"><dt>Work function, Φ</dt><dd id="workFunction">2.28 eV</dd></div>
-          <div class="readout"><dt>Frequency, f</dt><dd id="frequency"></dd></div>
-          <div class="readout"><dt>Threshold frequency, f₀</dt><dd id="thresholdFrequency"></dd></div>
-          <div class="readout"><dt>Threshold wavelength, λ₀</dt><dd id="thresholdWavelength"></dd></div>
           <div class="readout"><dt>Maximum initial KE</dt><dd id="maxKE">0.82 eV</dd></div>
           <div class="readout"><dt>Stopping potential, Vₛ</dt><dd id="stoppingPotential">0.82 V</dd></div>
         </dl>
-        <p id="status" role="status"></p>
-        <p class="note">hf = Φ + K<sub>max</sub><br>eVₛ = K<sub>max</sub> (when emission occurs)</p>
-      </div>
-      <div class="graph-section">
-        <h2>Current–voltage graph</h2>
+        <p class="energy-equation">hf = Φ + K<sub>max</sub> &nbsp; · &nbsp; eVₛ = K<sub>max</sub></p>
+        <button id="setStopping">Set V = −Vₛ</button>
+        <details>
+          <summary>Frequency and threshold values</summary>
+          <dl>
+            <div class="readout"><dt>Frequency, f</dt><dd id="frequency"></dd></div>
+            <div class="readout"><dt>Threshold frequency, f₀</dt><dd id="thresholdFrequency"></dd></div>
+            <div class="readout"><dt>Threshold wavelength, λ₀</dt><dd id="thresholdWavelength"></dd></div>
+          </dl>
+          <p class="note">Work functions are model values; actual surfaces may differ. The energy equations apply when emission occurs.</p>
+        </details>
+    </section>
+    <section id="graphPanel" class="supplement particle-only" aria-labelledby="graphHeading" hidden>
+        <h2 id="graphHeading">Current–voltage graph</h2>
+        <div class="graph-layout">
         <svg id="graph" class="graph" viewBox="0 0 320 245" role="img" aria-labelledby="graphTitle graphDescription">
           <title id="graphTitle">Photocurrent against collector voltage</title>
           <desc id="graphDescription"></desc>
@@ -174,17 +183,25 @@
           <circle id="operatingPoint" r="5" fill="#245cc0" stroke="white" stroke-width="2"/>
           <g id="stoppingMarker"></g>
         </svg>
+        <div>
         <p class="note">Blue curve: current settings. Dot: selected voltage. Current is in arbitrary units.</p>
         <div class="buttons"><button id="pin">Keep reference</button><button id="clearReference" disabled>Clear reference</button></div>
         <p id="referenceLabel">No reference curve saved.</p>
-      </div>
+        <p class="note">The graph uses an idealised energy distribution. Real experimental curves can have different shapes.</p>
+        </div>
+        </div>
     </section>
-  </main>
   <footer class="model-note observation-only">
-    Current is shown in arbitrary units. Light intensity is relative; compare intensities at a fixed wavelength. UV and IR are shown using false colours.
+    <details><summary>How to use this simulation</summary>
+      <ul class="guide"><li>Choose a wavelength and observe the current.</li><li>Change light intensity at a fixed wavelength.</li><li>Vary the collector voltage. When does the current fall to zero?</li></ul>
+      <p>Current is shown in arbitrary units. Light intensity is relative; compare intensities at a fixed wavelength. V = potential of collector − potential of target. UV and IR use false colours; apparatus dimensions are not to scale.</p>
+    </details>
   </footer>
   <footer class="model-note particle-only">
-    <strong>About this model.</strong> This is an idealised one-dimensional model with uniform initial electron energies from 0 to K<sub>max</sub>, emission towards the collector, a uniform electric field and complete collection at positive voltage. Electrons with positive initial energy are also collected at zero voltage. The straight retarding section illustrates this chosen energy distribution; real experimental I–V curves can have different shapes. Photon arrival rate is held fixed when wavelength changes. The displayed current is a steady model value, not a count of the animated dots. Uses c ≈ 3.00 × 10⁸ m s⁻¹ and hc ≈ 1240 eV nm.
+    <details><summary>Teaching guide and model assumptions</summary>
+      <ul class="guide"><li>Increase wavelength until emission stops.</li><li>At fixed wavelength, increase light intensity to increase the photon arrival rate.</li><li>Show energy, then apply a retarding voltage to find the stopping potential.</li><li>Show the I–V graph to compare settings using a reference curve.</li></ul>
+      <p>This is an idealised one-dimensional model with uniform initial electron energies from 0 to K<sub>max</sub>, emission towards the collector, a uniform electric field and complete collection at positive voltage. Electrons with positive initial energy are also collected at zero voltage. Photon arrival rate is held fixed when wavelength changes. The displayed current is a steady model value, not a count of the animated dots. V = potential of collector − potential of target. Particle sizes and apparatus dimensions are not to scale. UV and IR use false colours. Uses c ≈ 3.00 × 10⁸ m s⁻¹ and hc ≈ 1240 eV nm.</p>
+    </details>
   </footer>
   <script>
     'use strict';
@@ -341,7 +358,7 @@
       previousTime = timestamp;
       if (running && view === 'particles') {
         const model = calculateModel(state);
-        photonBudget += dt * 24 * state.flux / 100;
+        photonBudget += dt * 8 * state.flux / 100;
         while (photonBudget >= 1) {
           photons.push({ x: 267, y: 105, targetY: 188 + Math.random() * 124 });
           photonBudget--;
@@ -386,7 +403,24 @@
       changeVoltage(Number(event.target.value));
     });
     byId('setStopping').addEventListener('click', () => changeVoltage(-calculateModel(state).maxKE));
-    function changeView(nextView) { view = nextView; clearParticles(); previousTime = null; update(); }
+    function toggleExplanation(panelId, buttonId, label) {
+      const panel = byId(panelId);
+      panel.hidden = !panel.hidden;
+      byId(buttonId).setAttribute('aria-expanded', !panel.hidden);
+      byId(buttonId).textContent = `${panel.hidden ? 'Show' : 'Hide'} ${label}`;
+      if (!panel.hidden) panel.scrollIntoView({ behavior: 'instant', block: 'nearest' });
+    }
+    byId('energyToggle').addEventListener('click', () => toggleExplanation('energyPanel', 'energyToggle', 'energy'));
+    byId('graphToggle').addEventListener('click', () => toggleExplanation('graphPanel', 'graphToggle', 'I–V graph'));
+    function changeView(nextView) {
+      view = nextView;
+      for (const [panel, button, label] of [['energyPanel', 'energyToggle', 'energy'], ['graphPanel', 'graphToggle', 'I–V graph']]) {
+        byId(panel).hidden = true;
+        byId(button).setAttribute('aria-expanded', false);
+        byId(button).textContent = `Show ${label}`;
+      }
+      clearParticles(); previousTime = null; update();
+    }
     byId('observationView').addEventListener('click', () => changeView('observation'));
     byId('particleView').addEventListener('click', () => changeView('particles'));
     byId('pause').addEventListener('click', () => { running = !running; previousTime = null; update(); });
