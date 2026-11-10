@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore fixed-end and free-end reflection, superposition, nodes and antinodes in an interactive HKDSE wave model.">
+  <title>Wave Reflection &amp; Stationary Waves | WWK Physics</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #18304b; background: #f3f6fa; color-scheme: light; --red: #c83b49; --blue: #236bc5; --ink: #142a45; --muted: #52677e; --line: #dce5ef; }
+    * { box-sizing: border-box; }
+    body { margin: 0; line-height: 1.5; }
+    header, main, footer { max-width: 1240px; margin: auto; }
+    header { padding: 18px 22px 14px; }
+    .brand { color: #5c7188; font-size: .8rem; }
+    h1 { font-size: clamp(1.55rem, 3vw, 2rem); line-height: 1.2; margin: 5px 0; letter-spacing: -.025em; }
+    h2 { font-size: .95rem; margin: 0 0 10px; }
+    p { margin: 6px 0; }
+    .subtitle { color: var(--muted); margin-bottom: 12px; }
+    button, select, input { font: inherit; }
+    button { cursor: pointer; color: #244261; background: white; border: 1px solid #aebfd2; border-radius: 7px; padding: 8px 13px; min-height: 38px; font-size: .85rem; font-weight: 650; }
+    button:hover { background: #edf3fb; }
+    button.primary { background: #245fc5; border-color: #245fc5; color: white; min-width: 96px; }
+    button[aria-pressed="true"] { color: white; background: var(--ink); border-color: var(--ink); }
+    button:disabled { cursor: default; opacity: .55; }
+    :focus-visible { outline: 3px solid #b87400; outline-offset: 3px; }
+    .tabs, .end-options, .toolbar, .layers { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .tabs { gap: 7px; }
+    main { display: grid; grid-template-columns: minmax(0, 1fr) 290px; border: 1px solid var(--line); border-radius: 14px; background: white; overflow: hidden; }
+    .stage { min-width: 0; padding: 12px 16px 14px; }
+    .plot { overflow-x: auto; }
+    #wavePlot { display: block; width: 100%; height: auto; aspect-ratio: 960 / 440; background: #fff; }
+    .controls { padding: 18px; border-left: 1px solid var(--line); background: #f9fbfd; }
+    .field { margin: 15px 0; }
+    .label-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    label, .field-label { font-size: .85rem; font-weight: 650; }
+    output { font-size: .9rem; font-weight: 750; color: #245fc5; font-variant-numeric: tabular-nums; }
+    input[type="range"] { width: 100%; height: 25px; margin: 3px 0; accent-color: #245fc5; cursor: pointer; }
+    input[type="checkbox"] { width: 17px; height: 17px; margin: 0; accent-color: #245fc5; }
+    select { padding: 6px; border: 1px solid #aebfd2; border-radius: 6px; background: white; color: var(--ink); font-size: .84rem; }
+    .layers { gap: 12px; padding: 4px 0 10px; }
+    .layers label, .check { display: inline-flex; gap: 6px; align-items: center; font-size: .82rem; font-weight: 550; cursor: pointer; }
+    .incident { color: var(--red); } .reflected { color: var(--blue); }
+    .toolbar { border-top: 1px solid var(--line); padding: 12px 0 8px; }
+    .toolbar label { margin-left: 4px; font-size: .8rem; }
+    .time { margin-left: auto; font-variant-numeric: tabular-nums; font-size: .85rem; color: var(--muted); }
+    #status { font-size: .85rem; color: #36516f; min-height: 2.8em; margin: 6px 0 0; }
+    .facts { display: flex; gap: 18px; flex-wrap: wrap; font-size: .84rem; border-bottom: 1px solid var(--line); padding: 0 0 8px; color: var(--muted); }
+    .facts strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+    .toggle-stack { display: grid; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+    .note { color: var(--muted); font-size: .77rem; }
+    .end-note { font-size: .81rem; padding: 9px 10px; border-left: 3px solid #8fa8c6; background: #eef3f9; margin: 12px 0; }
+    #pointReadout { padding: 8px 10px; background: #fff7e6; border: 1px solid #eed49d; border-radius: 7px; font-size: .82rem; font-variant-numeric: tabular-nums; }
+    .side-action { width: 100%; margin: 5px 0 10px; }
+    footer { padding: 12px 22px 22px; font-size: .82rem; color: var(--muted); }
+    summary { cursor: pointer; font-weight: 650; padding: 5px 0; }
+    details p, details ul { max-width: 900px; }
+    .credit { font-size: .73rem; margin-top: 12px; }
+    a { color: #24599b; }
+    [hidden] { display: none !important; }
+    body[data-mode="pulse"] .continuous-only, body[data-mode="continuous"] .pulse-only { display: none !important; }
+    @media (max-width: 1270px) { main { margin: 0 12px; } }
+    @media (max-width: 760px) { main { grid-template-columns: minmax(0, 1fr); } .controls { border-left: 0; border-top: 1px solid var(--line); } header { padding: 15px; } .stage { padding: 8px 10px; } .time { margin-left: 0; } .plot svg { min-width: 610px; } .plot { overscroll-behavior-x: contain; } .mobile-note { display: block; } }
+    @media (min-width: 761px) { .mobile-note { display: none; } }
+  </style>
+</head>
+<body data-mode="continuous">
+  <header>
+    <span class="brand">WWK Physics · Wave Motion</span>
+    <h1>Wave Reflection &amp; Stationary Waves</h1>
+    <p class="subtitle">Follow an incoming wave, its reflection and their superposition.</p>
+    <nav class="tabs" aria-label="Wave demonstration">
+      <button id="pulseMode" aria-pressed="false">Reflection · single pulse</button>
+      <button id="continuousMode" aria-pressed="true">Stationary wave</button>
+    </nav>
+  </header>
+  <main>
+    <section class="stage" aria-label="Wave diagram and playback">
+      <div class="facts">
+        <span>String length: <strong>10.0 m</strong></span>
+        <span class="continuous-only">Wavelength: <strong id="wavelengthValue">4.00 m</strong></span>
+        <span class="continuous-only">Period: <strong id="periodValue">2.00 s</strong></span>
+        <span class="pulse-only">Pulse length: <strong id="pulseLengthValue">2.00 m</strong></span>
+      </div>
+      <div class="plot">
+        <svg id="wavePlot" viewBox="0 0 960 440" role="img" aria-labelledby="plotTitle plotDescription">
+          <title id="plotTitle">Superposition of incident and reflected waves</title>
+          <desc id="plotDescription">A wave travels from left to right and is reflected at the right end. The resultant displacement is the sum of the incident and reflected displacements.</desc>
+          <defs>
+            <pattern id="wallHatch" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 8 L8 0" stroke="#aebfd2" stroke-width="2"/></pattern>
+          </defs>
+          <g id="axes"></g>
+          <g id="envelope" fill="none" stroke="#afbdcc" stroke-width="1.5" stroke-dasharray="4 5"></g>
+          <path id="incidentPath" fill="none" stroke="#c83b49" stroke-width="2.8" stroke-dasharray="9 4"/>
+          <path id="reflectedPath" fill="none" stroke="#236bc5" stroke-width="2.8" stroke-dasharray="3 4"/>
+          <path id="resultantPath" fill="none" stroke="#142a45" stroke-width="4"/>
+          <g id="endDrawing"></g>
+          <g id="markers"></g>
+          <g id="trackedPoint"></g>
+        </svg>
+      </div>
+      <p class="note mobile-note">Swipe the diagram sideways to see the full string.</p>
+      <div class="layers" aria-label="Visible waves">
+        <label class="incident"><input id="showIncident" type="checkbox" checked>Incident →</label>
+        <label class="reflected"><input id="showReflected" type="checkbox" checked>← Reflected</label>
+        <label><input id="showResultant" type="checkbox" checked>Resultant</label>
+      </div>
+      <div class="toolbar">
+        <button id="play" class="primary">Start</button>
+        <button id="step">Step T/8</button>
+        <button id="restart">Restart</button>
+        <label for="playbackRate">Speed</label>
+        <select id="playbackRate"><option value="1">Normal</option><option value="0.25">¼ speed</option><option value="0.1">⅒ speed</option></select>
+        <span class="time">t = <span id="timeValue">0.00</span> s</span>
+      </div>
+      <p id="status" role="status">Press Start to see the wave travel to the end and return.</p>
+      <p id="markerKey" class="note" hidden>N = node · A = antinode. Markers and the amplitude envelope appear only where the waves overlap.</p>
+      <p id="pointReadout" hidden></p>
+    </section>
+    <section class="controls" aria-label="Wave settings">
+      <h2>Reflecting boundary</h2>
+      <div class="end-options" role="group" aria-label="Right end">
+        <button id="fixedEnd" aria-pressed="true">Fixed end</button>
+        <button id="freeEnd" aria-pressed="false">Free end</button>
+      </div>
+      <p id="endNote" class="end-note">Fixed end: the reflected displacement is inverted. The end remains at rest.</p>
+      <div class="field">
+        <div class="label-row"><label for="amplitude">Incident amplitude</label><output id="amplitudeValue" for="amplitude">0.60 m</output></div>
+        <input id="amplitude" type="range" min="0.2" max="1" step="0.1" value="0.6">
+      </div>
+      <div class="field continuous-only">
+        <div class="label-row"><label for="frequency">Frequency</label><output id="frequencyValue" for="frequency">0.50 Hz</output></div>
+        <input id="frequency" type="range" min="0.2" max="1" step="0.05" value="0.5">
+      </div>
+      <div class="field pulse-only">
+        <div class="label-row"><label for="pulseDuration">Pulse duration</label><output id="pulseDurationValue" for="pulseDuration">1.00 s</output></div>
+        <input id="pulseDuration" type="range" min="0.4" max="2" step="0.1" value="1">
+      </div>
+      <div class="field">
+        <div class="label-row"><label for="waveSpeed">Wave speed</label><output id="waveSpeedValue" for="waveSpeed">2.00 m s⁻¹</output></div>
+        <input id="waveSpeed" type="range" min="1" max="4" step="0.25" value="2">
+      </div>
+      <button id="established" class="side-action continuous-only">Show established wave</button>
+      <div class="toggle-stack">
+        <label class="check"><input id="separateRows" type="checkbox">Separate the three waves</label>
+        <label class="check continuous-only"><input id="showMarkers" type="checkbox">Show nodes &amp; antinodes</label>
+        <label class="check"><input id="trackPoint" type="checkbox">Track a point on the string</label>
+      </div>
+      <div id="pointControl" class="field" hidden>
+        <div class="label-row"><label for="pointX">Point position, x</label><output id="pointXValue" for="pointX">6.50 m</output></div>
+        <input id="pointX" type="range" min="0" max="10" step="0.1" value="6.5">
+      </div>
+      <p class="note">Changing the boundary or a wave parameter restarts the demonstration.</p>
+    </section>
+  </main>
+  <footer>
+    <details>
+      <summary>Teaching guide</summary>
+      <ul>
+        <li>Use a single pulse first. Compare its displacement before and after reflection at a fixed end and at a free end.</li>
+        <li>Switch to Stationary wave. Follow the reflected wave back along the string, then show the established wave.</li>
+        <li>Hide or separate the component waves. At each point, add the red and blue displacements to obtain the resultant.</li>
+        <li>Reveal nodes and antinodes. Adjacent nodes are λ/2 apart; a node and its nearest antinode are λ/4 apart.</li>
+        <li>Track a point. The point moves transversely, while the component wave patterns travel along the string.</li>
+      </ul>
+    </details>
+    <details>
+      <summary>Physics and model assumptions</summary>
+      <p>Equal-amplitude incident and reflected waves travel at the same speed. At a fixed end, reflection introduces a phase change of π (180°), giving a node. At a free end, there is no phase change, giving an antinode. In the overlap region, continuous waves of equal frequency form a stationary (standing) wave.</p>
+      <p>The ideal string has a uniform wave speed and no damping or dispersion. The incoming wave is supplied from outside the left edge. Waves returning through that edge leave without a second reflection; this model has one reflecting boundary and does not demonstrate resonance between two reflecting ends. The diagram is vertically enlarged.</p>
+      <p>For a source displacement s(t), yᵢ(x,t) = s(t − x/v) and yᵣ(x,t) = r s(t − (2L − x)/v), where r = −1 for a fixed end and r = +1 for a free end. The resultant is y = yᵢ + yᵣ. The source is zero before t = 0.</p>
+    </details>
+    <p class="credit">Independently implemented for WWK Physics. Teaching approach inspired by <a href="https://www.walter-fendt.de/html5/phen/standingwavereflection_en.htm" target="_blank" rel="noopener">Walter Fendt’s reflection and superposition demonstration</a>.</p>
+  </footer>
+  <script>
+    'use strict';
+    const L = 10;
+    const X0 = 70, X1 = 850;
+    const byId = id => document.getElementById(id);
+    const state = { mode: 'continuous', end: 'fixed', amplitude: 0.6, frequency: 0.5,
+      speed: 2, pulseDuration: 1, time: 0, running: false, rate: 1,
+      incident: true, reflected: true, resultant: true, separate: false, markers: false, track: false, pointX: 6.5 };
+    let previousTimestamp = null;
+
+    // Analytic travelling waves with a single reflected image; no numerical boundary approximation.
+    function sourceAt(time, settings) {
+      if (time < 0) return 0;
+      if (settings.mode === 'pulse') {
+        if (time > settings.pulseDuration) return 0;
+        return settings.amplitude * Math.sin(Math.PI * time / settings.pulseDuration) ** 2;
+      }
+      return settings.amplitude * Math.sin(2 * Math.PI * settings.frequency * time);
+    }
+    function wavesAt(x, time, settings) {
+      const incident = sourceAt(time - x / settings.speed, settings);
+      const reflected = (settings.end === 'fixed' ? -1 : 1) * sourceAt(time - (2 * L - x) / settings.speed, settings);
+      return { incident, reflected, resultant: incident + reflected };
+    }
+    function stationaryAmplitude(x, settings) {
+      const distancePhase = 2 * Math.PI * settings.frequency * (L - x) / settings.speed;
+      return 2 * settings.amplitude * Math.abs(settings.end === 'fixed' ? Math.sin(distancePhase) : Math.cos(distancePhase));
+    }
+    function stationaryPositions(settings) {
+      const wavelength = settings.speed / settings.frequency;
+      const points = [];
+      for (let n = 0; n * wavelength / 4 <= L + 1e-9; n++) {
+        const x = Math.max(0, L - n * wavelength / 4);
+        const node = settings.end === 'fixed' ? n % 2 === 0 : n % 2 !== 0;
+        points.push({ x, type: node ? 'N' : 'A' });
+      }
+      return points;
+    }
+    function pulseEndTime(settings) { return 2 * L / settings.speed + settings.pulseDuration; }
+    function plotGeometry(settings) {
+      return settings.separate ? { incident: 78, reflected: 203, resultant: 343, scale: 34 } : { incident: 210, reflected: 210, resultant: 210, scale: 75 };
+    }
+    const px = x => X0 + x / L * (X1 - X0);
+    function curvePath(kind, geometry, settings) {
+      const points = [];
+      for (let i = 0; i <= 500; i++) {
+        const x = L * i / 500;
+        const value = wavesAt(x, settings.time, settings)[kind];
+        points.push(`${i ? 'L' : 'M'}${px(x).toFixed(2)},${(geometry[kind] - value * geometry.scale).toFixed(2)}`);
+      }
+      return points.join(' ');
+    }
+    function drawAxes() {
+      const geometry = plotGeometry(state);
+      let markup = '';
+      for (let x = 0; x <= L; x += 2) {
+        markup += `<line x1="${px(x)}" y1="35" x2="${px(x)}" y2="410" stroke="#edf1f6"/><text x="${px(x)}" y="433" text-anchor="middle" font-size="15" fill="#52677e">${x}</text>`;
+      }
+      if (state.separate) {
+        for (const [kind, label, colour] of [['incident', 'Incident →', '#c83b49'], ['reflected', '← Reflected', '#236bc5'], ['resultant', 'Resultant', '#142a45']]) {
+          markup += `<line x1="${X0}" y1="${geometry[kind]}" x2="${X1}" y2="${geometry[kind]}" stroke="#b9c7d7"/><text x="${X0}" y="${geometry[kind] - 43}" font-size="17" fill="${colour}">${label} / m</text>`;
+        }
+      } else {
+        markup += '<text x="16" y="23" font-size="16" fill="#52677e">Displacement / m</text>';
+        for (const value of [-2, -1, 0, 1, 2]) {
+          const y = geometry.resultant - value * geometry.scale;
+          markup += `<line x1="${X0}" y1="${y}" x2="${X1}" y2="${y}" stroke="${value === 0 ? '#b9c7d7' : '#edf1f6'}"/><text x="${X0 - 14}" y="${y+5}" text-anchor="end" font-size="14" fill="#52677e">${value}</text>`;
+        }
+      }
+      markup += '<text x="930" y="433" text-anchor="end" font-size="15" fill="#52677e">x / m</text>';
+      byId('axes').innerHTML = markup;
+    }
+    function drawBoundary(geometry) {
+      const baseline = geometry.resultant;
+      const endpoint = wavesAt(L, state.time, state).resultant;
+      const y = baseline - endpoint * geometry.scale;
+      byId('endDrawing').innerHTML = state.end === 'fixed'
+        ? `<rect x="${X1}" y="${baseline - 78}" width="16" height="156" fill="url(#wallHatch)"/><line x1="${X1}" y1="${baseline - 78}" x2="${X1}" y2="${baseline + 78}" stroke="#5b718c" stroke-width="3"/><circle cx="${X1}" cy="${baseline}" r="5" fill="#142a45"/><text x="${X1 + 26}" y="${baseline + 5}" font-size="15" fill="#52677e">Fixed</text>`
+        : `<line x1="${X1}" y1="${baseline - 85}" x2="${X1}" y2="${baseline + 85}" stroke="#8ca1b9" stroke-width="3"/><ellipse cx="${X1}" cy="${y}" rx="8" ry="5" fill="white" stroke="#142a45" stroke-width="3"/><text x="${X1 + 26}" y="${baseline + 5}" font-size="15" fill="#52677e">Free</text>`;
+    }
+    function drawMarkers(geometry) {
+      let markers = '', upper = '', lower = '';
+      const visible = state.mode === 'continuous' && state.markers && state.resultant;
+      if (visible) {
+        let namedN = false, namedA = false;
+        for (const point of stationaryPositions(state)) {
+          if (state.time + 1e-9 < (2 * L - point.x) / state.speed) continue;
+          const node = point.type === 'N';
+          const name = node ? !namedN : !namedA;
+          if (node) namedN = true; else namedA = true;
+          markers += `<circle cx="${px(point.x)}" cy="${geometry.resultant}" r="${node ? 4 : 3}" fill="${node ? '#3c6f63' : 'white'}" stroke="#3c6f63" stroke-width="2"/>`;
+          if (name) markers += `<text x="${px(point.x) - 4}" y="${geometry.resultant + 22}" text-anchor="end" font-size="16" font-weight="700" fill="#3c6f63">${point.type}</text>`;
+        }
+        for (let i = 0; i <= 300; i++) {
+          const x = L * i / 300;
+          if (state.time + 1e-9 < (2 * L - x) / state.speed) continue;
+          const amplitude = stationaryAmplitude(x, state);
+          upper += `${upper ? 'L' : 'M'}${px(x)},${geometry.resultant - geometry.scale * amplitude} `;
+          lower += `${lower ? 'L' : 'M'}${px(x)},${geometry.resultant + geometry.scale * amplitude} `;
+        }
+      }
+      byId('markers').innerHTML = markers;
+      byId('envelope').innerHTML = visible ? `<path d="${upper}"/><path d="${lower}"/>` : '';
+      byId('markerKey').hidden = !visible;
+    }
+    function drawTrackedPoint(geometry) {
+      const values = wavesAt(state.pointX, state.time, state);
+      const enabled = state.track && state.resultant;
+      const x = px(state.pointX), y = geometry.resultant - values.resultant * geometry.scale;
+      byId('trackedPoint').innerHTML = enabled ? `<line x1="${x}" y1="${geometry.resultant - 2 * state.amplitude * geometry.scale - 8}" x2="${x}" y2="${geometry.resultant + 2 * state.amplitude * geometry.scale + 8}" stroke="#d6ac5a" stroke-dasharray="3 4"/><circle cx="${x}" cy="${y}" r="6" fill="#f5b63f" stroke="#875516" stroke-width="2"/>` : '';
+      byId('pointReadout').hidden = !enabled;
+      const format = value => Math.abs(value) < 0.0005 ? '0.000' : `${value > 0 ? '+' : '−'}${Math.abs(value).toFixed(3)}`;
+      byId('pointReadout').textContent = `At x = ${state.pointX.toFixed(2)} m: ${format(values.incident)} m + (${format(values.reflected)} m) = ${format(values.resultant)} m`;
+    }
+    function render() {
+      const geometry = plotGeometry(state);
+      for (const [kind, id] of [['incident', 'incidentPath'], ['reflected', 'reflectedPath'], ['resultant', 'resultantPath']]) {
+        byId(id).style.display = state[kind] ? '' : 'none';
+        byId(id).setAttribute('d', curvePath(kind, geometry, state));
+      }
+      drawBoundary(geometry); drawMarkers(geometry); drawTrackedPoint(geometry);
+      byId('timeValue').textContent = state.time.toFixed(2);
+      const fullReturn = 2 * L / state.speed;
+      let text;
+      if (state.time < 1e-8) text = state.mode === 'pulse' ? 'Press Send pulse to launch an upward pulse towards the right end.' : 'Press Start to see the wave travel to the end and return.';
+      else if (state.mode === 'pulse' && state.time >= pulseEndTime(state) - 1e-8) text = 'The pulse has returned through the left edge. Press Replay pulse to repeat.';
+      else if (state.time < L / state.speed) text = 'The incident wave is travelling towards the right end.';
+      else if (state.mode === 'pulse') text = state.end === 'fixed' ? 'The returning pulse is inverted. Add the component displacements where they overlap.' : 'The returning pulse is not inverted. Add the component displacements where they overlap.';
+      else if (state.time < fullReturn) text = 'The reflected wave is travelling left. A stationary pattern forms in the overlap region.';
+      else text = state.end === 'fixed' ? 'An established stationary wave: the fixed end is a node.' : 'An established stationary wave: the free end is an antinode.';
+      if (byId('status').textContent !== text) byId('status').textContent = text;
+      byId('play').textContent = state.running ? 'Pause' : state.time < 1e-8 ? (state.mode === 'pulse' ? 'Send pulse' : 'Start') : state.mode === 'pulse' && state.time >= pulseEndTime(state) - 1e-8 ? 'Replay pulse' : 'Continue';
+    }
+    function syncControls() {
+      document.body.dataset.mode = state.mode;
+      byId('pulseMode').setAttribute('aria-pressed', state.mode === 'pulse');
+      byId('continuousMode').setAttribute('aria-pressed', state.mode === 'continuous');
+      byId('fixedEnd').setAttribute('aria-pressed', state.end === 'fixed');
+      byId('freeEnd').setAttribute('aria-pressed', state.end === 'free');
+      byId('endNote').textContent = state.end === 'fixed' ? 'Fixed end: the reflected displacement is inverted. The end remains at rest.' : 'Free end: the reflected displacement is not inverted. The end can move transversely.';
+      byId('amplitudeValue').textContent = `${state.amplitude.toFixed(2)} m`;
+      byId('frequencyValue').textContent = `${state.frequency.toFixed(2)} Hz`;
+      byId('waveSpeedValue').textContent = `${state.speed.toFixed(2)} m s⁻¹`;
+      byId('pulseDurationValue').textContent = `${state.pulseDuration.toFixed(2)} s`;
+      byId('wavelengthValue').textContent = `${(state.speed / state.frequency).toFixed(2)} m`;
+      byId('periodValue').textContent = `${(1 / state.frequency).toFixed(2)} s`;
+      byId('pulseLengthValue').textContent = `${(state.speed * state.pulseDuration).toFixed(2)} m`;
+      byId('pointXValue').textContent = `${state.pointX.toFixed(2)} m`;
+      byId('pointControl').hidden = !state.track;
+      byId('step').textContent = state.mode === 'pulse' ? 'Step 0.10 s' : 'Step T/8';
+      drawAxes(); render();
+    }
+    function restart() { state.time = 0; state.running = false; previousTimestamp = null; syncControls(); }
+    function advanceTime(dt) {
+      state.time += dt;
+      if (state.mode === 'pulse' && state.time >= pulseEndTime(state)) {
+        state.time = pulseEndTime(state); state.running = false;
+      }
+    }
+    function animate(timestamp) {
+      const dt = previousTimestamp === null ? 0 : Math.min((timestamp - previousTimestamp) / 1000, 0.1);
+      previousTimestamp = timestamp;
+      if (state.running && !document.hidden) { advanceTime(dt * state.rate); render(); }
+      requestAnimationFrame(animate);
+    }
+    byId('play').addEventListener('click', () => {
+      if (state.mode === 'pulse' && state.time >= pulseEndTime(state) - 1e-8) state.time = 0;
+      state.running = !state.running; previousTimestamp = null; render();
+    });
+    byId('restart').addEventListener('click', restart);
+    byId('step').addEventListener('click', () => {
+      state.running = false;
+      if (state.mode === 'pulse' && state.time >= pulseEndTime(state) - 1e-8) state.time = 0;
+      advanceTime(state.mode === 'pulse' ? 0.1 : 1 / (8 * state.frequency)); render();
+    });
+    byId('established').addEventListener('click', () => {
+      state.time = 2 * L / state.speed + 1 / (8 * state.frequency); state.running = false; render();
+    });
+    byId('pulseMode').addEventListener('click', () => { state.mode = 'pulse'; restart(); });
+    byId('continuousMode').addEventListener('click', () => { state.mode = 'continuous'; restart(); });
+    byId('fixedEnd').addEventListener('click', () => { state.end = 'fixed'; restart(); });
+    byId('freeEnd').addEventListener('click', () => { state.end = 'free'; restart(); });
+    for (const [id, key] of [['amplitude', 'amplitude'], ['frequency', 'frequency'], ['waveSpeed', 'speed'], ['pulseDuration', 'pulseDuration']]) {
+      byId(id).addEventListener('input', event => { state[key] = Number(event.target.value); restart(); });
+    }
+    byId('playbackRate').addEventListener('change', event => { state.rate = Number(event.target.value); previousTimestamp = null; });
+    for (const [id, key] of [['showIncident', 'incident'], ['showReflected', 'reflected'], ['showResultant', 'resultant'], ['separateRows', 'separate'], ['showMarkers', 'markers'], ['trackPoint', 'track']]) {
+      byId(id).addEventListener('change', event => { state[key] = event.target.checked; syncControls(); });
+    }
+    byId('pointX').addEventListener('input', event => { state.pointX = Number(event.target.value); syncControls(); });
+    document.addEventListener('visibilitychange', () => { previousTimestamp = null; });
+    syncControls(); requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
