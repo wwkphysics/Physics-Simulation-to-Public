@@ -22,7 +22,7 @@
     #atomSvg { display: block; width: 100%; height: min(430px, 59vh); min-height: 300px; }
     .orbit { fill: none; stroke: #465a78; stroke-dasharray: 4 5; stroke-width: 1; }
     .orbit.active { stroke: #75bfff; stroke-width: 2; stroke-dasharray: none; }
-    .orbit-label { fill: #b9cce5; font-size: 12px; }
+    .orbit-label { fill: #c6d8ef; font-size: 18px; }
     #eventStatus { padding: 6px 8px; min-height: 3.5em; font-size: .88rem; }
     figcaption { color: #aebfd7; font-size: .75rem; padding: 4px 8px; }
     .controls { padding: 18px; min-width: 0; }
@@ -71,7 +71,7 @@
   <main>
     <figure class="atom">
       <div class="atom-top"><span>Hydrogen atom</span><span id="currentState">Current level: n = 1</span></div>
-      <svg id="atomSvg" viewBox="-350 -300 700 600" role="img" aria-labelledby="atomTitle atomDescription">
+      <svg id="atomSvg" viewBox="-300 -280 600 560" role="img" aria-labelledby="atomTitle atomDescription">
         <title id="atomTitle">Bohr model of a hydrogen atom</title>
         <desc id="atomDescription">One electron is in the ground state, n equals 1. Six allowed orbits are shown schematically.</desc>
         <g id="orbits"></g>
@@ -119,7 +119,7 @@
       </svg>
       <div>
         <p class="equation">E<sub>n</sub> = −13.6 / n² eV</p>
-        <p class="equation">E<sub>photon</sub> = hf = |E<sub>f</sub> − E<sub>i</sub>|</p>
+        <p id="photonEquation" class="equation">E<sub>photon</sub> = hf = |E<sub>f</sub> − E<sub>i</sub>|</p>
         <dl class="energy-data"><div><dt>Current atomic energy</dt><dd id="atomicEnergy">−13.60 eV</dd></div><div><dt>Energy needed to ionise</dt><dd id="bindingEnergy">13.60 eV</dd></div><div><dt>Selected spectral series</dt><dd id="series">Lyman</dd></div><div><dt>Atomic energy change, ΔE</dt><dd id="deltaEnergy">+10.20 eV</dd></div></dl>
         <p id="energyExplanation" class="note"></p>
         <p class="note">Vertical energy positions use a linear energy scale. Leader lines separate labels for the closely spaced upper levels.</p>
@@ -172,13 +172,17 @@
     function radius(n) { return 32 + 36 * n; } // Schematic, not the physical n² scaling.
     function number(value) { return Math.abs(value) > 0 && Math.abs(value) < .01 ? value.toPrecision(3) : value.toFixed(2); }
     function selectedTransition() {
-      if (state.animation && ['absorption', 'emission'].includes(state.animation.kind)) return transition(state.animation.from, state.animation.to);
+      if (state.animation) return ['absorption', 'emission'].includes(state.animation.kind) ? transition(state.animation.from, state.animation.to) : null;
       return state.n === null ? null : transition(state.n, state.target);
     }
     function announce(text) { byId('eventStatus').textContent = text; }
     function updateStateText() {
       byId('currentState').textContent = state.n === null ? 'Ionised: H⁺' : `Current level: n = ${state.n}`;
       byId('atomDescription').textContent = state.n === null ? 'The electron has left the hydrogen atom. A hydrogen ion remains.' : `One electron occupies n equals ${state.n}. Six allowed orbits are drawn with schematic spacing.`;
+    }
+    function updateAtomicReadouts() {
+      byId('atomicEnergy').textContent = state.n === null ? '0 eV (continuum limit)' : `${number(energy(state.n))} eV`;
+      byId('bindingEnergy').textContent = state.n === null ? '—' : `${(-energy(state.n)).toPrecision(4)} eV`;
     }
     function updateUI() {
       const busy = state.animation !== null, ionised = state.n === null;
@@ -197,15 +201,17 @@
       byId('manualEnergy').disabled = busy || ionised;
       byId('runTransition').textContent = state.mode === 'absorption' ? 'Absorb photon' : 'Emit photon';
       byId('pause').textContent = state.paused ? 'Play animation' : 'Pause animation';
-      const t = selectedTransition();
-      byId('previewLabel').textContent = t ? `${busy ? 'In progress' : 'Next transition'}: n = ${t.from} → ${t.to}` : ionised ? 'Ionised — prepare an atom or reset.' : state.mode === 'emission' ? 'Ground state: no lower level.' : 'No higher level shown. Test a photon to ionise.';
-      byId('photonEnergy').textContent = t ? `${number(t.photonEnergy)} eV` : '—';
-      byId('wavelength').textContent = t ? `${t.wavelength.toFixed(1)} nm · ${region(t.wavelength)}` : '—';
-      byId('atomicEnergy').textContent = ionised ? '0 eV (continuum limit)' : `${number(energy(state.n))} eV`;
-      byId('bindingEnergy').textContent = ionised ? '—' : `${(-energy(state.n)).toPrecision(4)} eV`;
+      const t = selectedTransition(), a = state.animation;
+      const testing = a && ['ionisation', 'pass'].includes(a.kind);
+      const displayedEnergy = testing ? a.photonEnergy : t ? t.photonEnergy : null;
+      byId('previewLabel').textContent = testing ? a.kind === 'ionisation' ? `Ionisation: n = ${a.from} → free electron` : 'Test photon: no matching shown gap' : t ? `${busy ? 'In progress' : 'Next transition'}: n = ${t.from} → ${t.to}` : ionised ? 'Ionised — prepare an atom or reset.' : state.mode === 'emission' ? 'Ground state: no lower level.' : 'No higher level shown. Test a photon to ionise.';
+      byId('photonEnergy').textContent = displayedEnergy === null ? '—' : `${number(displayedEnergy)} eV`;
+      byId('wavelength').textContent = displayedEnergy === null ? '—' : `${(HC / displayedEnergy).toFixed(1)} nm · ${region(HC / displayedEnergy)}`;
+      updateAtomicReadouts();
       byId('series').textContent = t ? seriesName(t.from, t.to) : '—';
-      byId('deltaEnergy').textContent = t ? `${t.delta > 0 ? '+' : '−'}${number(Math.abs(t.delta))} eV` : '—';
-      byId('energyExplanation').textContent = t ? t.delta > 0 ? 'Absorption increases the atomic energy. The absorbed photon supplies the energy gap.' : 'Emission decreases the atomic energy. The emitted photon carries away the energy gap.' : ionised ? 'The ionisation limit is the zero of energy. The free electron can carry positive kinetic energy.' : 'Select a valid transition to compare the two energy levels.';
+      byId('deltaEnergy').textContent = testing ? a.kind === 'ionisation' ? `+${number(-energy(a.from))} eV` : '0.00 eV' : t ? `${t.delta > 0 ? '+' : '−'}${number(Math.abs(t.delta))} eV` : '—';
+      byId('energyExplanation').textContent = testing ? a.kind === 'ionisation' ? `The photon supplies the binding energy; the remaining ${number(a.kineticEnergy)} eV becomes electron kinetic energy.` : 'The photon is not absorbed, so the atomic energy does not change.' : t ? t.delta > 0 ? 'Absorption increases the atomic energy. The absorbed photon supplies the energy gap.' : 'Emission decreases the atomic energy. The emitted photon carries away the energy gap.' : ionised ? 'The ionisation limit is the zero of energy. The free electron can carry positive kinetic energy.' : 'Select a valid transition to compare the two energy levels.';
+      byId('photonEquation').innerHTML = (a && a.kind === 'ionisation') || ionised ? 'E<sub>photon</sub> = E<sub>ionisation</sub> + K<sub>electron</sub>' : 'E<sub>photon</sub> = hf = |E<sub>f</sub> − E<sub>i</sub>|';
       drawEnergyDiagram(); render();
     }
     function drawEnergyDiagram() {
@@ -249,7 +255,7 @@
       if (!a.jumped && a.kind !== 'pass' && a.elapsed >= jumpAt) {
         a.jumped = true;
         state.n = a.kind === 'ionisation' ? null : a.to;
-        updateStateText(); drawEnergyDiagram();
+        updateStateText(); updateAtomicReadouts(); drawEnergyDiagram();
       }
       const duration = a.kind === 'ionisation' ? 1.9 : a.kind === 'pass' ? 1.5 : 1.3;
       if (a.elapsed >= duration) finishAnimation(a);
@@ -285,7 +291,7 @@
       state.animation = null; state.n = n; state.angle = 0;
       announce(`Prepared at n = ${n}. Choose a target level or test a photon energy.`); updateUI();
     }
-    byId('orbits').innerHTML = Array.from({ length: MAX_N }, (_, i) => `<circle id="orbit${i+1}" r="${radius(i+1)}" class="orbit"/><text x="${radius(i+1)+4}" y="-6" class="orbit-label">n=${i+1}</text>`).join('');
+    byId('orbits').innerHTML = Array.from({ length: MAX_N }, (_, i) => `<circle id="orbit${i+1}" r="${radius(i+1)}" class="orbit"/><text x="${Math.cos(-.65)*radius(i+1)+6}" y="${Math.sin(-.65)*radius(i+1)-5}" class="orbit-label">n=${i+1}</text>`).join('');
     for (const mode of ['absorption', 'emission']) byId(`${mode}Mode`).addEventListener('click', () => {
       if (state.animation) return; state.mode = mode; updateUI();
     });
