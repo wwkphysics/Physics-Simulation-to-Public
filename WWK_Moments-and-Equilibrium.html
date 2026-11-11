@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Moments &amp; Equilibrium | WWK Physics</title>
+<style>:root{font-family:system-ui,sans-serif;color:#172a43;background:#f4f7fb}*{box-sizing:border-box}body{margin:0;line-height:1.5}header,main,footer{max-width:1160px;margin:auto;padding:16px}header{padding-bottom:4px}h1{font-size:clamp(1.8rem,4vw,2.5rem);margin:5px 0}h2{font-size:1rem;margin:0 0 10px}p{margin:8px 0}a{color:#245bb3}small,.note{color:#4b6079;font-size:.85rem}.layout{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:14px;align-items:start}.card{background:white;border:1px solid #d8e3ef;border-radius:14px;padding:16px;min-width:0}.scene{background:#10213b;color:#e9f3ff;padding:12px}.scene p{padding:0 8px}.scene small{color:#bdcfe5}.scene canvas{display:block;width:100%;height:auto}.field{margin-bottom:10px}.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}label{display:block;font-weight:650;font-size:.85rem;margin-bottom:4px}input,select,button{font:inherit}input[type=number],select{width:100%;padding:7px;border:1px solid #96abc5;border-radius:6px;background:white;color:inherit}input[type=range]{width:100%;accent-color:#245bb3}button{border:1px solid #91a9c8;background:white;border-radius:7px;color:#1d477f;padding:8px 10px;cursor:pointer;font-size:.85rem;font-weight:650}button.primary,button[aria-pressed=true]{background:#245bb3;color:white;border-color:#245bb3}button:disabled{opacity:.55;cursor:default}:focus-visible{outline:3px solid #ecad36;outline-offset:2px}.buttons{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}details{margin:10px 0}summary{cursor:pointer;color:#244d7d;font-weight:650}.section{margin-top:14px}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}.metric{background:#eef4fb;padding:10px;border-radius:8px}.metric strong{display:block;font-size:1.18rem}.metric small{display:block}.pass{background:#e4f5eb}.fail{background:#fff0e4}table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}th,td{text-align:left;padding:7px;border-bottom:1px solid #e0e8f2}.table-wrap{overflow:auto}.lightCanvas{display:block;max-width:720px;width:100%;height:auto;background:#f1f6fd;border-radius:8px;margin:10px auto}[hidden]{display:none!important}@media(max-width:720px){.layout{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}header,main,footer{padding-left:12px;padding-right:12px}}</style>
+</head>
+<body>
+<header>
+<a href="https://wwkphysics.github.io/Physics-Simulation-to-Public/">All simulations</a>
+<h1>Moments &amp; Equilibrium</h1>
+<p class="note">Change the line of action of a force. Then test the two conditions for equilibrium on a free beam.</p>
+</header>
+<main>
+<div class="layout">
+<section class="card scene">
+<canvas id="scene" width="720" height="415" role="img" aria-label="A force applied to a horizontal beam about a pivot."></canvas>
+<p id="caption">Dashed lines show the line of action and the perpendicular distance from the pivot.</p>
+<p><small id="sceneNote">The beam is held horizontal for the calculation.</small></p>
+</section>
+<section class="card" aria-label="Controls">
+<div class="buttons"><button id="momentMode" aria-pressed="true">Moment of a force</button><button id="balanceMode" aria-pressed="false">Equilibrium</button></div>
+<div id="momentControls">
+<div class="field"><label for="force">Force / N <output id="forceReadout">20</output></label><input id="force" type="range" min="0" max="40" step="1" value="20"></div>
+<div class="field"><label for="position">Position along beam / m <output id="positionReadout">1.5</output></label><input id="position" type="range" min="-2" max="2" step="0.1" value="1.5"></div>
+<div class="field"><label for="angle">Force direction / ° <output id="angleReadout">−90</output></label><input id="angle" type="range" min="-180" max="180" step="15" value="-90"><p class="note">Measure from the rightward horizontal. Anticlockwise is positive.</p></div>
+<div class="buttons"><button data-angle="0">Along beam</button><button data-angle="-30">30° below</button><button data-angle="-90">90° below</button></div>
+</div>
+<div id="balanceControls" hidden>
+<div class="field"><label for="example">Compare examples</label><select id="example"><option value="both">Both conditions met</option><option value="force">Forces balance only</option><option value="moment">Moments balance only</option><option value="custom">Custom</option></select></div>
+<div class="pair">
+<div class="field"><label for="f1">Force F₁ / N</label><input id="f1" type="number" min="-40" max="40" step="1" value="-10"></div>
+<div class="field"><label for="x1">F₁ position / m</label><input id="x1" type="number" min="-2" max="2" step="0.1" value="-1"></div>
+<div class="field"><label for="f2">Force F₂ / N</label><input id="f2" type="number" min="-40" max="40" step="1" value="-10"></div>
+<div class="field"><label for="x2">F₂ position / m</label><input id="x2" type="number" min="-2" max="2" step="0.1" value="1"></div>
+</div>
+<div class="field"><label for="centre">Force at centre C / N</label><input id="centre" type="number" min="-80" max="80" step="1" value="40"></div>
+<p class="note">Upward forces and positions to the right of O are positive. The beam weighs 20 N.</p>
+</div>
+<div class="buttons"><button class="primary" id="reveal" aria-expanded="false" aria-controls="results">Show moment</button><button id="reset">Reset</button></div>
+</section>
+</div>
+<section id="results" class="card section" hidden aria-labelledby="resultTitle">
+<h2 id="resultTitle">Moment about O</h2>
+<div id="momentResults">
+<div class="metrics">
+<div class="metric"><small>Perpendicular distance</small><strong id="distance"></strong></div>
+<div class="metric"><small>Moment magnitude</small><strong id="momentMagnitude"></strong></div>
+<div class="metric"><small>Turning direction</small><strong id="turnDirection"></strong></div>
+</div>
+<p id="momentEquation"></p>
+</div>
+<div id="balanceResults" hidden>
+<div class="metrics">
+<div class="metric" id="forceCheck"><small>Resultant vertical force</small><strong id="netForce"></strong><span id="forceVerdict"></span></div>
+<div class="metric" id="momentCheck"><small>Resultant moment about O</small><strong id="netMoment"></strong><span id="momentVerdict"></span></div>
+<div class="metric" id="bothCheck"><small>Both conditions</small><strong id="balanceVerdict"></strong></div>
+</div>
+<p id="initialTendency"></p>
+<details><summary>Show contributions from each force</summary>
+<div class="table-wrap"><table><thead><tr><th scope="col">Force</th><th scope="col">Vertical force / N</th><th scope="col">Position / m</th><th scope="col">Moment / N m</th></tr></thead><tbody id="contributions"></tbody></table></div>
+<p class="note">The two centre forces act through O, so each has zero moment about O. Horizontal forces sum to zero in this arrangement.</p>
+</details>
+</div>
+</section>
+</main>
+<footer>
+<details><summary>Model assumptions</summary><p>Moment equals force multiplied by perpendicular distance from the reference point to the line of action. Anticlockwise moments are positive. In Equilibrium mode the beam is free and O is its centre of mass. The calculation uses the initial horizontal position and gives the initial tendency to translate or turn.</p><p><a href="https://openstax.org/books/university-physics-volume-1/pages/12-1-conditions-for-static-equilibrium">Reference: Conditions for static equilibrium</a></p></details>
+</footer>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+function line(ctx,x1,y1,x2,y2,colour,width=2,dash=[]){
+  ctx.save();ctx.strokeStyle=colour;ctx.lineWidth=width;ctx.setLineDash(dash);
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.restore();
+}
+function circle(ctx,x,y,r,colour){
+  ctx.fillStyle=colour;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+}
+function label(ctx,value,x,y,colour='#e9f3ff',size=18,align='center'){
+  ctx.fillStyle=colour;ctx.font='600 '+size+'px system-ui';ctx.textAlign=align;ctx.textBaseline='middle';ctx.fillText(value,x,y);
+}
+function arrow(ctx,x1,y1,x2,y2,colour){
+  if(Math.hypot(x2-x1,y2-y1)<1)return;
+  line(ctx,x1,y1,x2,y2,colour,3);
+  const angle=Math.atan2(y2-y1,x2-x1);
+  ctx.fillStyle=colour;ctx.beginPath();ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-11*Math.cos(angle-.48),y2-11*Math.sin(angle-.48));
+  ctx.lineTo(x2-11*Math.cos(angle+.48),y2-11*Math.sin(angle+.48));ctx.closePath();ctx.fill();
+}
+function format(value,digits=2){return (Math.abs(value)<1e-8?0:value).toFixed(digits);}
+function readNumber(input,fallback){
+  const value=input.valueAsNumber;
+  if(!Number.isFinite(value))return fallback;
+  const min=Number(input.min),max=Number(input.max),step=Number(input.step);
+  const bounded=Math.min(max,Math.max(min,value));
+  return Number((min+Math.round((bounded-min)/step)*step).toFixed(6));
+}
+const zero=value=>Math.abs(value)<1e-8;
+const initialMoment={force:20,position:1.5,angle:-90};
+const presets={
+  both:{f1:-10,x1:-1,f2:-10,x2:1,centre:40},
+  force:{f1:10,x1:-1,f2:-10,x2:1,centre:20},
+  moment:{f1:-10,x1:-1,f2:-10,x2:1,centre:20}
+};
+let mode='moment';
+const momentSettings={...initialMoment},balance={...presets.both};
+const ctx=$('scene').getContext('2d');
+const originX=360,originY=218,metre=108;
+function solveMoment({force,position,angle}){
+  const theta=angle*Math.PI/180,ux=Math.cos(theta),uy=Math.sin(theta);
+  const distance=Math.abs(position*uy);
+  return {ux,uy,distance,moment:position*force*uy,footX:position*(1-ux*ux),footY:-position*ux*uy};
+}
+function solveBalance({f1,x1,f2,x2,centre}){
+  const forces=[
+    {name:'F₁',force:f1,x:x1,colour:'#ffb26b'},
+    {name:'F₂',force:f2,x:x2,colour:'#80c8ff'},
+    {name:'C',force:centre,x:0,colour:'#7ee3af'},
+    {name:'Weight',force:-20,x:0,colour:'#ffe294'}
+  ].map(f=>({...f,moment:f.x*f.force}));
+  const netForce=forces.reduce((sum,f)=>sum+f.force,0);
+  const netMoment=forces.reduce((sum,f)=>sum+f.moment,0);
+  return {forces,netForce,netMoment,forceBalanced:zero(netForce),momentBalanced:zero(netMoment)};
+}
+function turning(moment){return zero(moment)?'None':moment>0?'Anticlockwise':'Clockwise';}
+function beam(){
+  ctx.clearRect(0,0,720,415);
+  line(ctx,originX-2*metre,originY,originX+2*metre,originY,'#abc5e6',8);
+  for(let x=-2;x<=2;x++){
+    const px=originX+x*metre;
+    line(ctx,px,originY+7,px,originY+15,'#aec5e0');
+    if(x!==0)label(ctx,x+' m',px,originY+32,'#bdcfe5',15);
+  }
+}
+function drawMoment(result){
+  const {force,position}=momentSettings;
+  const {ux,uy,footX,footY,distance}=result;
+  const x=originX+position*metre,y=originY;
+  ctx.fillStyle='#6685ab';ctx.beginPath();ctx.moveTo(originX,originY+5);
+  ctx.lineTo(originX-25,originY+45);ctx.lineTo(originX+25,originY+45);ctx.closePath();ctx.fill();
+  label(ctx,'Pivot O',originX,originY+67);
+  if(force>0){
+    line(ctx,x-ux*300,y+uy*300,x+ux*300,y-uy*300,'#95abc7',2,[7,6]);
+    const hx=originX+footX*metre,hy=originY-footY*metre;
+    if(distance>.001){
+      line(ctx,originX,originY,hx,hy,'#ffd884',2,[5,4]);
+      circle(ctx,hx,hy,3,'#ffd884');
+      label(ctx,'d⊥',(originX+hx)/2+13,(originY+hy)/2-13,'#ffd884',16);
+      const vx=(originX-hx)/(distance*metre),vy=(originY-hy)/(distance*metre);
+      line(ctx,hx+ux*10,hy-uy*10,hx+ux*10+vx*10,hy-uy*10+vy*10,'#ffd884');
+      line(ctx,hx+ux*10+vx*10,hy-uy*10+vy*10,hx+vx*10,hy+vy*10,'#ffd884');
+    }
+    const length=Math.max(19,force*2.5);
+    arrow(ctx,x,y,x+ux*length,y-uy*length,'#7cc9ff');
+    label(ctx,force+' N',Math.max(43,Math.min(677,x+ux*(length+14))),y-uy*length-16,'#7cc9ff');
+  }
+  circle(ctx,x,y,4,'#7cc9ff');circle(ctx,originX,originY,6,'#ffd884');
+}
+function drawBalance(result){
+  circle(ctx,originX,originY,6,'#e9f3ff');
+  label(ctx,'O',originX-14,originY+22,'#e9f3ff',15);
+  for(const f of result.forces){
+    if(zero(f.force))continue;
+    const x=originX+f.x*metre;
+    const length=Math.max(12,Math.abs(f.force)*1.65);
+    const tip=originY-Math.sign(f.force)*length;
+    arrow(ctx,x,originY,x,tip,f.colour);
+    const right=f.name==='F₂'||f.name==='C';
+    label(ctx,f.name+' '+Math.abs(f.force)+' N',x+(right?10:-10),tip+(f.name==='Weight'?12:0),f.colour,16,right?'left':'right');
+  }
+}
+function update(){
+  beam();
+  const m=mode==='moment';
+  $('momentControls').hidden=!m;$('balanceControls').hidden=m;
+  $('momentResults').hidden=!m;$('balanceResults').hidden=m;
+  $('momentMode').setAttribute('aria-pressed',m);$('balanceMode').setAttribute('aria-pressed',!m);
+  $('resultTitle').textContent=m?'Moment about O':'Check the two conditions';
+  $('reveal').textContent=$('results').hidden?(m?'Show moment':'Check equilibrium'):'Hide results';
+  $('reveal').setAttribute('aria-expanded',!$('results').hidden);
+  if(m){
+    const r=solveMoment(momentSettings);
+    drawMoment(r);
+    $('forceReadout').textContent=momentSettings.force;
+    $('positionReadout').textContent=format(momentSettings.position,1);
+    $('angleReadout').textContent=momentSettings.angle;
+    $('caption').textContent='The dashed line through the force is its line of action. The shortest distance from O to that line is d⊥.';
+    $('sceneNote').textContent='The beam is held horizontal for the calculation.';
+    $('scene').setAttribute('aria-label','A '+momentSettings.force+' newton force acts at position '+momentSettings.position+' metres, at '+momentSettings.angle+' degrees from the rightward horizontal.');
+    $('distance').textContent=momentSettings.force===0?'—':format(r.distance)+' m';
+    $('momentMagnitude').textContent=format(Math.abs(r.moment))+' N m';
+    $('turnDirection').textContent=turning(r.moment);
+    $('momentEquation').textContent=momentSettings.force===0?'With zero applied force, its moment is zero.':'Moment magnitude = F × d⊥ = '+momentSettings.force+' × '+format(r.distance,3)+' ≈ '+format(Math.abs(r.moment))+' N m.';
+    return;
+  }
+  const r=solveBalance(balance),both=r.forceBalanced&&r.momentBalanced;
+  drawBalance(r);
+  $('caption').textContent='O is the centre of mass of the free beam. Check the vertical forces and the moments about O.';
+  $('sceneNote').textContent='This diagram shows the initial horizontal position.';
+  $('scene').setAttribute('aria-label','Free horizontal beam with two adjustable forces, a centre force and a weight of 20 newtons at O.');
+  $('netForce').textContent=format(r.netForce,1)+' N';
+  $('netMoment').textContent=format(r.netMoment,1)+' N m';
+  $('forceVerdict').textContent=r.forceBalanced?'ΣF = 0 ✓':'ΣF ≠ 0';
+  $('momentVerdict').textContent=r.momentBalanced?'ΣM = 0 ✓':'ΣM ≠ 0';
+  $('balanceVerdict').textContent=both?'Equilibrium':'Unbalanced';
+  $('forceCheck').className='metric '+(r.forceBalanced?'pass':'fail');
+  $('momentCheck').className='metric '+(r.momentBalanced?'pass':'fail');
+  $('bothCheck').className='metric '+(both?'pass':'fail');
+  const translation=r.forceBalanced?'no translational acceleration':r.netForce>0?'accelerates upwards':'accelerates downwards';
+  const rotation=r.momentBalanced?'no angular acceleration':'starts turning '+turning(r.netMoment).toLowerCase();
+  $('initialTendency').textContent='From rest: '+translation+' and '+rotation+'. Positive moments are anticlockwise.';
+  $('contributions').innerHTML=r.forces.map(f=>'<tr><th scope="row">'+f.name+'</th><td>'+format(f.force,1)+'</td><td>'+format(f.x,1)+'</td><td>'+format(f.moment,1)+'</td></tr>').join('');
+}
+function syncInputs(){
+  for(const key of Object.keys(momentSettings))$(key).value=momentSettings[key];
+  for(const key of Object.keys(balance))$(key).value=balance[key];
+}
+for(const key of Object.keys(momentSettings))$(key).addEventListener('input',()=>{momentSettings[key]=Number($(key).value);update();});
+for(const key of Object.keys(balance))$(key).addEventListener('change',()=>{
+  balance[key]=readNumber($(key),balance[key]);
+  $('example').value='custom';syncInputs();update();
+});
+for(const button of document.querySelectorAll('[data-angle]'))button.addEventListener('click',()=>{
+  momentSettings.angle=Number(button.dataset.angle);syncInputs();update();
+});
+$('example').addEventListener('change',()=>{
+  const example=presets[$('example').value];
+  if(example)Object.assign(balance,example);
+  syncInputs();update();
+});
+function switchMode(next){mode=next;$('results').hidden=true;update();}
+$('momentMode').addEventListener('click',()=>switchMode('moment'));
+$('balanceMode').addEventListener('click',()=>switchMode('balance'));
+$('reveal').addEventListener('click',()=>{
+  $('results').hidden=!$('results').hidden;update();
+  if(!$('results').hidden)$('results').scrollIntoView({block:'nearest'});
+});
+$('reset').addEventListener('click',()=>{
+  Object.assign(momentSettings,initialMoment);Object.assign(balance,presets.both);
+  $('example').value='both';$('results').hidden=true;syncInputs();update();
+});
+update();
+</script>
+</body>
+</html>
