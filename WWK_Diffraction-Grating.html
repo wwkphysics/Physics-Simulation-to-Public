@@ -1,446 +1,238 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diffraction Grating Simulator</title>
-    <!-- Load Tailwind CSS for styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load React and Babel for JSX rendering -->
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <style>
-        /* Custom styles for appearance */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0a0a0a;
-        }
-        /* Custom track colors for range inputs */
-        input[type="range"]::-webkit-slider-runnable-track {
-            background: #4b5563;
-            border-radius: 10px;
-        }
-        input[type="range"]::-moz-range-track {
-            background: #4b5563;
-            border-radius: 10px;
-        }
-        /* Styling for the spectrum gradient background in ScreenSimulation */
-        .screen-simulation-container {
-            mix-blend-mode: screen; /* Crucial for light addition simulation */
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Explore diffraction-grating spectra at normal incidence with monochromatic or white light, grating spacing and screen overlap.">
+<title>Diffraction Grating Simulator</title>
+<style>
+html{color-scheme:dark;background:#101a29}body{margin:0;padding:16px;box-sizing:border-box}main{max-width:1120px;margin:0 auto}button,input{font-family:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:2px solid #b5ecee;outline-offset:3px}@media(max-width:420px){body{padding:6px}}
+</style>
 </head>
 <body>
-    <div id="root"></div>
+<main>
+<section id="wwk-grating-preview" aria-label="Diffraction Grating Simulator">
+  <header class="wwk-title">
+    <h1>Diffraction Grating Simulator</h1>
+    <div class="wwk-formula"><span class="wwk-muted">Normal incidence</span><span><i>d</i> sin <i>θ</i> = <i>nλ</i></span></div>
+  </header>
+  <div class="wwk-layout">
+    <div class="wwk-panel wwk-controls">
+      <h2>Light source</h2>
+      <div class="wwk-modes" aria-label="Light source">
+        <button type="button" data-mode="white" aria-pressed="true">White light</button>
+        <button type="button" data-mode="mono" aria-pressed="false">Monochromatic</button>
+      </div>
+      <div class="wwk-field">
+        <label for="wwk-density">Grating density <output id="wwk-density-value">300 lines/mm</output></label>
+        <input id="wwk-density" type="range" min="100" max="1000" step="10" value="300">
+        <div class="wwk-spacing">
+          <span>Grating spacing <i>d</i><small>Distance between adjacent lines</small></span>
+          <output id="wwk-spacing" for="wwk-density">3.33 µm</output>
+        </div>
+      </div>
+      <div class="wwk-field" id="wwk-wave-field" hidden>
+        <label for="wwk-wave">Wavelength <output id="wwk-wave-value">532 nm</output></label>
+        <input id="wwk-wave" type="range" min="400" max="700" step="1" value="532">
+      </div>
+      <div class="wwk-field">
+        <label for="wwk-distance">Screen distance <output id="wwk-distance-value">1.5 m</output></label>
+        <input id="wwk-distance" type="range" min="0.5" max="5" step="0.1" value="1.5">
+      </div>
+      <div class="wwk-readout" aria-live="polite">
+        <div class="wwk-metric"><span>Highest order (<i>θ</i> &lt; 90°)</span><strong id="wwk-high"></strong></div>
+        <div class="wwk-metric"><span>Orders on this screen</span><strong id="wwk-visible"></strong></div>
+      </div>
+    </div>
+    <div class="wwk-views">
+      <div class="wwk-panel">
+        <div class="wwk-panel-head"><h2>Ray diagram</h2><span class="wwk-muted">Top view · schematic</span></div>
+        <svg id="wwk-rays" role="img" aria-label="Diffracted rays reaching the screen" height="217"></svg>
+      </div>
+      <div class="wwk-panel">
+        <div class="wwk-panel-head"><h2>Screen view</h2><span class="wwk-muted">Width 2.00 m</span></div>
+        <canvas id="wwk-screen" role="img" aria-label="Simulated pattern on a two metre screen" width="960" height="92"></canvas>
+        <div id="wwk-overlap-track" class="wwk-overlap-track" hidden aria-hidden="true"><span id="wwk-overlap-left"></span><span id="wwk-overlap-right"></span></div>
+        <div class="wwk-ticks" aria-hidden="true"><span>−1.00 m</span><span>0</span><span>+1.00 m</span></div>
+        <div class="wwk-status" id="wwk-status" aria-live="polite"></div>
+        <div class="wwk-muted" id="wwk-key">Violet nearer the centre · red farther out</div>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+#wwk-grating-preview{font-family:system-ui,sans-serif;background:#101a29;color:#f2f7ff;padding:16px;border-radius:14px;font-size:14px;box-sizing:border-box}
+#wwk-grating-preview [hidden]{display:none!important}
+#wwk-grating-preview .wwk-title{padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid #35465b;padding-right:68px}
+#wwk-grating-preview h1{color:#f2f7ff;font-size:23px;font-weight:650;line-height:1.2;margin:0 0 8px}
+#wwk-grating-preview .wwk-formula{display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap}
+#wwk-grating-preview .wwk-formula>span:last-child{color:#a9e9ec;background:#203d4b;border-radius:5px;padding:3px 8px}
+#wwk-grating-preview h2{color:#eef3ff;font-size:14px;font-weight:600;margin:0}
+#wwk-grating-preview .wwk-muted{font-size:12px;color:#b5bfd2}
+#wwk-grating-preview .wwk-layout{display:grid;grid-template-columns:minmax(230px, .8fr) minmax(0,1.65fr);gap:12px}
+#wwk-grating-preview .wwk-panel{background:#192639;border:1px solid #35465b;border-radius:10px;padding:13px;min-width:0}
+#wwk-grating-preview .wwk-controls{align-self:start}
+#wwk-grating-preview .wwk-views{display:grid;gap:12px;min-width:0}
+#wwk-grating-preview .wwk-modes{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:9px 0 13px;padding:3px;background:#232d3e;border-radius:7px}
+#wwk-grating-preview button{min-height:42px;padding:5px;border:0;border-radius:5px;background:transparent;color:#e0e9f9;font:inherit;font-size:12px}
+#wwk-grating-preview button[aria-pressed=true]{background:#b5ecee;color:#102933}
+#wwk-grating-preview .wwk-field{margin:13px 0}
+#wwk-grating-preview .wwk-field label{display:flex;justify-content:space-between;gap:4px;flex-wrap:wrap;font-size:12px}
+#wwk-grating-preview output{color:#b5ecee;font-variant-numeric:tabular-nums}
+#wwk-grating-preview input{width:100%;margin:4px 0;min-height:23px;accent-color:#8bdadc}
+#wwk-grating-preview .wwk-spacing{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px 8px;background:#14202f;border-left:3px solid #8bdadc;border-radius:5px;padding:8px 9px;font-size:12px}
+#wwk-grating-preview .wwk-spacing small{display:block;font-size:11px;color:#b5bfd2}
+#wwk-grating-preview .wwk-spacing output{font-size:20px;font-weight:650;white-space:nowrap}
+#wwk-grating-preview .wwk-readout{display:grid;gap:7px;border-top:1px solid #34405a;padding-top:10px;font-size:12px}
+#wwk-grating-preview .wwk-metric{display:flex;align-items:baseline;justify-content:space-between;gap:2px 6px;flex-wrap:wrap}
+#wwk-grating-preview .wwk-readout strong{font-weight:600;color:#b5ecee}
+#wwk-grating-preview .wwk-status{color:#ffe1ac;font-size:12px;margin-bottom:4px}
+#wwk-grating-preview .wwk-overlap-track{height:6px;margin-top:4px;position:relative}
+#wwk-grating-preview .wwk-overlap-track span{position:absolute;top:0;height:4px;border-bottom:2px solid #ffcb77;border-inline:1px solid #ffcb77;box-sizing:border-box}
+#wwk-grating-preview .wwk-panel-head{display:flex;justify-content:space-between;align-items:baseline;gap:6px;flex-wrap:wrap;margin-bottom:7px}
+#wwk-grating-preview svg{display:block;width:100%;background:#0b1322;border-radius:4px}
+#wwk-grating-preview canvas{display:block;width:100%;height:78px;background:#03050a;border-radius:4px}
+#wwk-grating-preview .wwk-ticks{display:flex;justify-content:space-between;font-size:12px;color:#b5bfd2;margin:4px 0 6px;font-variant-numeric:tabular-nums}
+@media(max-width:620px){#wwk-grating-preview .wwk-layout{grid-template-columns:minmax(0,1fr)}}
+</style>
+<script>
+(() => {
+  const root = document.getElementById('wwk-grating-preview');
+  const get = id => root.querySelector('#wwk-' + id);
+  const controls = {density:get('density'), wave:get('wave'), distance:get('distance')};
+  const modes = [...root.querySelectorAll('[data-mode]')];
+  const svg = get('rays'), canvas = get('screen'), ctx = canvas.getContext('2d');
+  let mode = 'white';
+  const ANGLE_LIMIT = 1 - 1e-12;
+  const VIOLET = 400, RED = 700;
+  const rgbStops = [[400,151,65,231],[440,78,102,255],[485,35,181,255],[510,35,223,171],[550,89,227,50],[580,249,224,50],[615,255,151,43],[650,255,78,63],[700,232,38,44]];
+  function rgb(wave) {
+    const k = Math.max(1, rgbStops.findIndex(stop=>stop[0]>=wave));
+    const a = rgbStops[k-1], b = rgbStops[k], t = (wave-a[0])/(b[0]-a[0]);
+    return [1,2,3].map(i=>Math.round(a[i]+t*(b[i]-a[i])));
+  }
+  function yAt(n, nm, spacing, distance) {
+    const s = n * nm / spacing;
+    return s < ANGLE_LIMIT ? distance * s / Math.sqrt(1-s*s) : Infinity;
+  }
+  function analyse(density, nm, distance, white) {
+    const spacing = 1e6 / density;
+    const highest = Math.ceil(spacing/(white ? VIOLET : nm)-1e-10)-1;
+    const bands = [];
+    for (let n=1;n<=highest;n++) {
+      const start = yAt(n,white ? VIOLET : nm,spacing,distance);
+      const end = white ? yAt(n,RED,spacing,distance) : start;
+      if (start <= 1) bands.push({n, start, end:Math.min(1,end), clipped:end>1});
+    }
+    const overlaps = [];
+    if (white) for (let j=0;j<bands.length;j++) for(let k=j+1;k<bands.length;k++) {
+      const a=bands[j], b=bands[k];
+      if (Math.min(a.end,b.end) > b.start + 1e-10) overlaps.push([a.n,b.n]);
+    }
+    return {spacing, highest, bands, overlaps, distance, nm, white};
+  }
+  function line(x1,y1,x2,y2,stroke,width=1,dash='') {
+    return '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+stroke+'" stroke-width="'+width+'" '+(dash?'stroke-dasharray="'+dash+'"':'')+'/>';
+  }
+  function drawRays(s) {
+    const w = Math.max(250, Math.round(svg.getBoundingClientRect().width)), h = 217, mid = 114;
+    const gx = 44, sx = w-42, py = y=>mid-y*82;
+    const light = s.white ? '#fff' : 'rgb('+rgb(s.nm).join(',')+')';
+    svg.setAttribute('viewBox','0 0 '+w+' '+h);
+    let paths = line(12,mid,sx,mid,'#52617d',1,'4 4') + line(12,mid,gx,mid,light,3) +
+      line(gx,mid-23,gx,mid+23,'#aebbd1',3,'3 3') + line(gx,mid,sx,mid,light,2);
+    for (const band of [...s.bands].reverse()) {
+      for (const sign of [-1,1]) {
+        if (s.white) {
+          const y1=py(sign*band.start), y2=py(sign*band.end);
+          const a=Math.abs(band.end), bound=s.spacing*(a/Math.hypot(a,s.distance))/band.n;
+          const c='rgb('+rgb(Math.min(RED,Math.max(VIOLET,bound))).join(',')+')';
+          paths += '<path d="M'+gx+' '+mid+' L'+sx+' '+y1+' L'+sx+' '+y2+' Z" fill="#8054d1" opacity=".14"/>';
+          paths += line(gx,mid,sx,y1,'#ad78ff',1.15);
+          paths += line(gx,mid,sx,y2,c,1.15,band.clipped?'4 3':'');
+        } else {
+          paths += line(gx,mid,sx,py(sign*band.start),light,1.3);
+        }
+      }
+    }
+    paths+=line(sx,py(1),sx,py(-1),'#b7c6df',3);
+    const label=(x,y,txt,anchor='start')=>'<text x="'+x+'" y="'+y+'" fill="#cbd8ef" font-size="11" text-anchor="'+anchor+'">'+txt+'</text>';
+    svg.innerHTML=paths+label(gx,23,'Grating')+label(sx,23,'Screen','middle')+label(sx+6,mid+4,'n = 0')+label((gx+sx)/2,205,'L = '+s.distance.toFixed(1)+' m','middle');
+  }
+  function drawScreen(s) {
+    const w=canvas.width, h=canvas.height;
+    ctx.fillStyle='#03050a';ctx.fillRect(0,0,w,h);
+    if (s.white) {
+      for (let x=0;x<w;x++) {
+        const y=Math.abs(2*(x+.5)/w-1);
+        const sine=y/Math.hypot(y,s.distance);
+        let colour=[3,5,10];
+        for (const {n} of s.bands) {
+          const nm=s.spacing*sine/n;
+          if (nm>=VIOLET && nm<=RED) {
+            const next=rgb(nm);
+            colour=colour.map((c,i)=>255-(255-c)*(1-next[i]*.78/255));
+          }
+        }
+        ctx.fillStyle='rgb('+colour.map(Math.round).join(',')+')';
+        ctx.fillRect(x,0,1,h);
+      }
+    }
+    const glow=(x,colour)=>{
+      const g=ctx.createLinearGradient(x-7,0,x+7,0);
+      g.addColorStop(0,'transparent');g.addColorStop(.5,colour);g.addColorStop(1,'transparent');
+      ctx.fillStyle=g;ctx.fillRect(x-7,0,14,h);
+    };
+    const light=s.white?'#fff':'rgb('+rgb(s.nm).join(',')+')';
+    if (!s.white) for(const {start} of s.bands) for(const sign of [-1,1]) glow((.5+sign*start/2)*w,light);
+    glow(w/2,light);
+  }
+  function render() {
+    const density=+controls.density.value, nm=+controls.wave.value, distance=+controls.distance.value;
+    const s=analyse(density,nm,distance,mode==='white');
+    get('density-value').textContent=density+' lines/mm';
+    get('wave-value').textContent=nm+' nm';
+    get('distance-value').textContent=distance.toFixed(1)+' m';
+    get('spacing').textContent=(s.spacing/1000).toFixed(2)+' µm';
+    get('wave-field').hidden=s.white;
+    modes.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
+    get('high').textContent=s.highest+(s.white?' (at least one colour)':'');
+    get('visible').textContent=s.bands.length?'0, ±1'+(s.bands.length>1?' to ±'+s.bands.at(-1).n:''):'0 only';
+    const partial = s.bands.some(b=>b.clipped);
+    const pair = s.overlaps.some(([a,b])=>a===2 && b===3);
+    get('overlap-track').hidden = !pair;
+    if (pair) {
+      const second = s.bands.find(b=>b.n===2), third = s.bands.find(b=>b.n===3);
+      const start = third.start, end = Math.min(second.end,third.end);
+      for (const [id, left] of [['overlap-left',.5-end/2],['overlap-right',.5+start/2]]) {
+        const bracket = get(id);
+        bracket.style.left = (100*left)+'%';
+        bracket.style.width = (50*(end-start))+'%';
+      }
+    }
+    if (s.white) {
+      const selected = s.overlaps[0];
+      get('status').textContent = pair ? 'Gold brackets: overlap of orders 2 and 3.' :
+        selected ? 'Spectra overlap on screen: orders '+selected.join(' and ')+'.' :
+        s.highest < 3 ? 'Order 3 does not form below 90° at this density.' :
+        'The overlap of orders 2 and 3 is outside the screen.';
+      get('key').textContent='400–700 nm · Violet nearer the centre'+(partial?' · Some bands extend beyond the screen.':' · Red farther out.');
+    } else {
+      const theta=Math.asin(nm/s.spacing)*180/Math.PI;
+      get('status').textContent='First-order angle: '+theta.toFixed(1)+'°'+(s.bands.length?'':' (off screen)')+'.';
+      get('key').textContent='Central maximum at 0 m · Side maxima occur in pairs.';
+    }
+    svg.setAttribute('aria-label','Ray diagram showing order zero and '+s.bands.length+' pairs of orders reaching the screen');
+    canvas.setAttribute('aria-label','Screen pattern. '+get('visible').textContent+' orders visible. '+get('status').textContent);
+    drawRays(s);drawScreen(s);
+  }
+  Object.values(controls).forEach(input=>input.addEventListener('input',render));
+  modes.forEach(b=>b.addEventListener('click',()=>{mode=b.dataset.mode;render()}));
+  new ResizeObserver(render).observe(svg);
+  render();
+})();
+</script>
 
-    <script type="text/babel">
-        // --- Icon Component (Equivalent to Lucide Icons) ---
-        const Icon = ({ name, size = 16, className = "" }) => {
-            const icons = {
-                Sun: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="M4.93 4.93l1.41 1.41"></path><path d="M17.66 17.66l1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="M6.34 17.66l-1.41 1.41"></path><path d="M19.07 4.93l-1.41 1.41"></path></svg>,
-                Zap: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>,
-                Info: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>,
-                Eye: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>,
-            };
-            const TargetIcon = icons[name];
-            return TargetIcon ? <TargetIcon size={size} className={className} /> : null;
-        };
-
-
-        const { useState, useMemo } = React;
-
-        const DiffractionGratingApp = () => {
-            // State
-            const [wavelength, setWavelength] = useState(532); // nm (Green)
-            const [linesPerMm, setLinesPerMm] = useState(300); // N
-            const [isWhiteLight, setIsWhiteLight] = useState(true);
-            const [screenDistance, setScreenDistance] = useState(1.5); // meters (virtual scale)
-            
-            // Constants
-            const visibleRange = { min: 400, max: 700 }; 
-            const orders = [0, 1, 2, 3, 4];
-            const screenWidthPhysical = 2.0; // meters (assumed screen width for calculation)
-            
-            // Calculations
-            const d = useMemo(() => 1e-3 / linesPerMm, [linesPerMm]); // grating spacing in meters
-
-            // Helper to get color from wavelength
-            const getWavelengthColor = (wl) => {
-                if (wl < 400) return "rgb(146, 39, 143)"; // Violet
-                if (wl >= 400 && wl < 440) return "rgb(146, 39, 143)"; // Violet
-                if (wl >= 440 && wl < 490) return "blue";
-                if (wl >= 490 && wl < 510) return "cyan";
-                if (wl >= 510 && wl < 580) return "rgb(0, 255, 0)"; // Green
-                if (wl >= 580 && wl < 645) return "rgb(255, 165, 0)"; // Yellow/Orange
-                if (wl >= 645 && wl <= 700) return "red";
-                if (wl > 700) return "red";
-                return "gray";
-            };
-
-            // Calculate diffraction angle and position
-            const calculatePosition = (n, wl_nm) => {
-                const wl_m = wl_nm * 1e-9;
-                const sinTheta = (n * wl_m) / d;
-                
-                if (Math.abs(sinTheta) > 1) return null;
-                
-                const theta = Math.asin(sinTheta);
-                const y = screenDistance * Math.tan(theta); // distance from center
-                
-                return {
-                    theta: (theta * 180) / Math.PI, // degrees
-                    y: y, // meters
-                    valid: true
-                };
-            };
-
-            // --- SVG Components ---
-
-            const RayDiagram = () => {
-                const svgWidth = 600;
-                const svgHeight = 300;
-                const centerX = 50;
-                const centerY = 150;
-                const screenX = 550;
-                
-                // Scaling factor to map physical screen width to SVG height
-                const scaleY = (svgHeight * 0.9) / screenWidthPhysical; 
-
-                return (
-                    <svg width="100%" height="100%" viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="bg-gray-900 border border-gray-700 rounded-lg shadow-inner">
-                        <defs>
-                            <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-                                <path d="M0,0 L0,6 L9,3 z" fill="#fff" />
-                            </marker>
-                        </defs>
-
-                        {/* Center Line and Grating */}
-                        <line x1="0" y1={centerY} x2={svgWidth} y2={centerY} stroke="#333" strokeDasharray="5,5" />
-                        <line x1="0" y1={centerY} x2={centerX} y2={centerY} stroke={isWhiteLight ? "white" : getWavelengthColor(wavelength)} strokeWidth="4" />
-                        <line x1={centerX} y1={centerY - 40} x2={centerX} y2={centerY + 40} stroke="#888" strokeWidth="4" strokeDasharray="4,2" />
-                        <text x={centerX - 10} y={centerY - 50} fill="#aaa" fontSize="12">Grating ({linesPerMm} lines/mm)</text>
-                        
-                        {/* Screen */}
-                        <line x1={screenX} y1="10" x2={screenX} y2={svgHeight - 10} stroke="#555" strokeWidth="6" />
-                        <text x={screenX - 20} y="20" fill="#aaa" fontSize="12" textAnchor="end">Screen</text>
-
-                        {orders.map(n => {
-                            if (n === 0) {
-                                return (
-                                    <g key="n0">
-                                        <line x1={centerX} y1={centerY} x2={screenX} y2={centerY} 
-                                            stroke={isWhiteLight ? "white" : getWavelengthColor(wavelength)} 
-                                            strokeWidth="2" opacity="0.8" />
-                                        <text x={screenX + 6} y={centerY + 3} fill="#9ca3af" fontSize="10" fontWeight="normal">n=0</text>
-                                    </g>
-                                );
-                            }
-
-                            let rays = [];
-                            if (isWhiteLight) {
-                                // Red and Violet rays to show the spectrum spread
-                                rays = [
-                                    { wl: visibleRange.min, color: getWavelengthColor(visibleRange.min) },
-                                    { wl: visibleRange.max, color: getWavelengthColor(visibleRange.max) }
-                                ];
-                            } else {
-                                // Single color ray
-                                rays = [{ wl: wavelength, color: getWavelengthColor(wavelength) }];
-                            }
-
-                            // Calculate label position (using average wavelength for better placement in white light)
-                            const labelWl = isWhiteLight ? (visibleRange.min + visibleRange.max) / 2 : wavelength;
-                            const labelData = calculatePosition(n, labelWl);
-                            
-                            let labelElement = null;
-                            if (labelData && labelData.valid) {
-                                const yOff = labelData.y * scaleY;
-                                const topY = centerY - yOff;
-                                const botY = centerY + yOff;
-                                
-                                // Only draw label if visible within SVG height
-                                const margin = 5;
-                                const isTopVisible = topY > margin && topY < svgHeight - margin;
-                                const isBotVisible = botY > margin && botY < svgHeight - margin;
-
-                                // Draw the order label (n=X) next to the screen
-                                labelElement = (
-                                    <>
-                                        {isTopVisible && <text x={screenX + 6} y={topY + 3} fill="#9ca3af" fontSize="10">n={n}</text>}
-                                        {isBotVisible && <text x={screenX + 6} y={botY + 3} fill="#9ca3af" fontSize="10">n={n}</text>}
-                                    </>
-                                );
-                            }
-
-                            return (
-                                <g key={`order-group-${n}`}>
-                                    {rays.map((ray, idx) => {
-                                        const data = calculatePosition(n, ray.wl);
-                                        if (!data || !data.valid) return null;
-                                        
-                                        const targetY_top = centerY - (data.y * scaleY);
-                                        const targetY_bot = centerY + (data.y * scaleY);
-
-                                        if (targetY_top < 0 || targetY_bot > svgHeight) return null;
-
-                                        return (
-                                            <g key={`ray-${n}-${idx}`}>
-                                                {/* Upper ray (e.g. n=+1) */}
-                                                <line x1={centerX} y1={centerY} x2={screenX} y2={targetY_top} stroke={ray.color} strokeWidth="1.5" opacity="0.6" />
-                                                {/* Lower ray (e.g. n=-1) */}
-                                                <line x1={centerX} y1={centerY} x2={screenX} y2={targetY_bot} stroke={ray.color} strokeWidth="1.5" opacity="0.6" />
-                                            </g>
-                                        );
-                                    })}
-                                    {labelElement}
-                                </g>
-                            );
-                        })}
-                    </svg>
-                );
-            };
-
-            const ScreenSimulation = () => {
-                const metersToPercent = (m) => (m / screenWidthPhysical) * 100;
-
-                return (
-                    <div className="relative w-full h-32 bg-black border-t-4 border-b-4 border-gray-800 rounded overflow-hidden shadow-[0_0_20px_rgba(0,0,0,1)_inset]">
-                        {/* n=0 center fringe */}
-                        <div className="absolute top-0 bottom-0 w-1 blur-[2px]" 
-                             style={{ 
-                                left: '50%', 
-                                transform: 'translateX(-50%)', 
-                                opacity: 1, 
-                                boxShadow: isWhiteLight ? '0 0 10px white' : `0 0 10px ${getWavelengthColor(wavelength)}`, 
-                                background: isWhiteLight ? 'white' : getWavelengthColor(wavelength) 
-                             }}
-                        ></div>
-                        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-gray-400">n=0</div>
-
-                        {orders.filter(n => n > 0).map(n => {
-                            let startPos = null;
-                            let endPos = null;
-                            let singlePos = null;
-
-                            if (isWhiteLight) {
-                                // Calculate position for violet (min WL) and red (max WL)
-                                const violet = calculatePosition(n, visibleRange.min);
-                                const red = calculatePosition(n, visibleRange.max); 
-                                if (violet && red) {
-                                    startPos = metersToPercent(violet.y); // Violet is inner edge
-                                    endPos = metersToPercent(red.y);     // Red is outer edge
-                                }
-                            } else {
-                                // Calculate position for monochromatic light
-                                const p = calculatePosition(n, wavelength);
-                                if (p) singlePos = metersToPercent(p.y);
-                            }
-
-                            const renderFringe = (positionPct, sideMultiplier) => {
-                                const leftPos = 50 + (positionPct * sideMultiplier);
-                                if (leftPos < -10 || leftPos > 110) return null;
-
-                                return (
-                                    <div key={`fringe-${n}-${sideMultiplier}`} 
-                                        className="absolute top-0 bottom-0"
-                                        style={{ left: `${leftPos}%` }}>
-                                        
-                                        {!isWhiteLight && (
-                                            <div className="w-1 h-full blur-[2px]" 
-                                                style={{ 
-                                                backgroundColor: getWavelengthColor(wavelength),
-                                                boxShadow: `0 0 ${8 - n}px ${getWavelengthColor(wavelength)}`,
-                                                opacity: Math.max(0.2, 1 - n * 0.15), 
-                                                transform: 'translateX(-50%)'
-                                                }} />
-                                        )}
-                                    </div>
-                                );
-                            };
-
-                            if (isWhiteLight && startPos !== null && endPos !== null) {
-                                const width = endPos - startPos;
-                                
-                                const rightStart = 50 + startPos; // Right side (Violet edge)
-                                const leftStart = 50 - endPos; // Left side (Red edge)
-                                
-                                return (
-                                    <React.Fragment key={`order-${n}`}>
-                                        {/* Right Spectrum */}
-                                        {rightStart < 100 && (
-                                            <>
-                                                <div className="absolute top-0 bottom-0 screen-simulation-container"
-                                                    style={{
-                                                        left: `${rightStart}%`,
-                                                        width: `${width}%`,
-                                                        // Spectrum gradient from Violet to Red (left to right)
-                                                        background: 'linear-gradient(to right, #4b0082, blue, green, yellow, red)',
-                                                        opacity: Math.max(0.5, 1 - n * 0.1)
-                                                    }}>
-                                                </div>
-                                                <div className="absolute bottom-8 text-[10px] text-gray-400 border-l border-gray-600 pl-1" style={{ left: `${rightStart + width/2}%` }}>
-                                                    n={n}
-                                                </div>
-                                            </>
-                                        )}
-
-                                        {/* Left Spectrum */}
-                                        {leftStart + width > 0 && (
-                                            <>
-                                                <div className="absolute top-0 bottom-0 screen-simulation-container"
-                                                    style={{
-                                                        left: `${leftStart}%`,
-                                                        width: `${width}%`,
-                                                        // Spectrum gradient from Red to Violet (left to right)
-                                                        background: 'linear-gradient(to right, red, yellow, green, blue, #4b0082)',
-                                                        opacity: Math.max(0.5, 1 - n * 0.1)
-                                                    }}>
-                                                </div>
-                                                <div className="absolute bottom-8 text-[10px] text-gray-400 border-r border-gray-600 pr-1 text-right" style={{ left: `${leftStart + width/2}%` }}>
-                                                    n={n}
-                                                </div>
-                                            </>
-                                        )}
-                                    </React.Fragment>
-                                );
-                            } else if (!isWhiteLight && singlePos) {
-                                // Monochromatic light fringes
-                                return (
-                                    <React.Fragment key={`order-${n}`}>
-                                        {renderFringe(singlePos, 1)}
-                                        {renderFringe(singlePos, -1)}
-                                        <div className="absolute bottom-1 text-[10px] text-gray-500" style={{left: `${50 + singlePos}%`, transform:'translateX(-50%)'}}>n={n}</div>
-                                        <div className="absolute bottom-1 text-[10px] text-gray-500" style={{left: `${50 - singlePos}%`, transform:'translateX(-50%)'}}>n={n}</div>
-                                    </React.Fragment>
-                                )
-                            }
-                            return null;
-                        })}
-
-                        {/* Grid overlay */}
-                        <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:5%_100%]"></div>
-                    </div>
-                );
-            };
-
-            return (
-                <div className="flex flex-col w-full max-w-5xl mx-auto p-4 bg-gray-950 text-gray-100 rounded-xl shadow-2xl font-sans min-h-screen">
-                    <header className="mb-6 border-b border-gray-800 pb-4 flex justify-between items-center">
-                        <div>
-                            <h1 className="text-2xl font-bold text-blue-400 flex items-center gap-2">
-                                <Icon name="Sun" className="w-6 h-6" /> 
-                                Diffraction Grating Simulator
-                            </h1>
-                            <p className="text-sm text-gray-400 mt-1">
-                                Formula: <code className="bg-gray-900 px-1 py-0.5 rounded text-yellow-300">d sin θ = n λ</code>
-                            </p>
-                        </div>
-                    </header>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-1 flex flex-col gap-6">
-                            {/* Control Panel */}
-                            <div className="bg-gray-900 p-5 rounded-lg border border-gray-800 flex flex-col gap-6">
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-sm font-semibold text-gray-300 flex items-center gap-2">
-                                        <Icon name="Zap" size={16} /> Light Source
-                                    </label>
-                                    <div className="flex bg-gray-800 p-1 rounded-lg">
-                                        <button 
-                                            onClick={() => setIsWhiteLight(true)}
-                                            className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${isWhiteLight ? 'bg-gradient-to-r from-purple-500 via-green-500 to-red-500 text-white shadow-md' : 'text-gray-400 hover:text-white'}`}
-                                        >
-                                            White Light
-                                        </button>
-                                        <button 
-                                            onClick={() => setIsWhiteLight(false)}
-                                            className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${!isWhiteLight ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:text-white'}`}
-                                        >
-                                            Monochromatic
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <div>
-                                        <div className="flex justify-between mb-1">
-                                            <label className="text-xs text-gray-400">Grating Density (Lines/mm)</label>
-                                            <span className="text-xs font-mono text-blue-300">{linesPerMm} lines/mm</span>
-                                        </div>
-                                        <input 
-                                            type="range" min="100" max="1000" step="10" 
-                                            value={linesPerMm} onChange={(e) => setLinesPerMm(Number(e.target.value))}
-                                            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                                        />
-                                        <div className="text-[10px] text-gray-500 mt-1">d = {(1000/linesPerMm).toFixed(2)} μm</div>
-                                    </div>
-
-                                    {!isWhiteLight && (
-                                        <div>
-                                           <div className="flex justify-between mb-1">
-                                            <label className="text-xs text-gray-400">Wavelength (λ)</label>
-                                            <span className="text-xs font-mono" style={{color: getWavelengthColor(wavelength)}}>{wavelength} nm</span>
-                                          </div>
-                                          <input 
-                                            type="range" min="400" max="700" step="1" 
-                                            value={wavelength} onChange={(e) => setWavelength(Number(e.target.value))}
-                                            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-gray-400"
-                                            style={{ accentColor: getWavelengthColor(wavelength) }}
-                                          />
-                                        </div>
-                                    )}
-
-                                    <div>
-                                         <div className="flex justify-between mb-1">
-                                            <label className="text-xs text-gray-400">Screen Distance (L)</label>
-                                            <span className="text-xs font-mono text-blue-300">{screenDistance.toFixed(1)} m</span>
-                                          </div>
-                                          <input 
-                                            type="range" min="0.5" max="5.0" step="0.1" 
-                                            value={screenDistance} onChange={(e) => setScreenDistance(Number(e.target.value))}
-                                            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                                          />
-                                    </div>
-                                </div>
-                                
-                                 <div className="bg-purple-900/20 border border-purple-800 p-3 rounded text-[10px] text-purple-200 mt-2">
-                                    <Icon name="Info" size={12} className="inline mr-1" />
-                                    Note: Overlap occurs when the red end of the n=2 spectrum meets the violet end of the n=3 spectrum. This is a real physical phenomenon.
-                                 </div>
-                            </div>
-                        </div>
-
-                        {/* Simulation View */}
-                        <div className="lg:col-span-2 flex flex-col gap-4">
-                            <div className="bg-gray-800 p-1 rounded-lg border border-gray-700 relative group">
-                                <div className="absolute top-2 left-2 bg-black/60 px-2 py-1 rounded text-xs text-gray-300">Ray Diagram (Top View)</div>
-                                <div className="h-64 w-full">
-                                    <RayDiagram />
-                                </div>
-                            </div>
-
-                            <div className="bg-gray-800 p-1 rounded-lg border border-gray-700 relative">
-                                <div className="flex items-center justify-between mb-2 px-2 pt-1">
-                                    <div className="text-xs font-semibold text-gray-300 flex items-center gap-2">
-                                        <Icon name="Eye" size={14} /> Screen View
-                                    </div>
-                                    <div className="text-[10px] text-gray-500">Center (n=0)</div>
-                                </div>
-                                <ScreenSimulation />
-                                <div className="mt-2 px-2 flex justify-between text-[10px] text-gray-500">
-                                <span>Left Side</span>
-                                <span>Right Side</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        // Render the application
-        ReactDOM.render(<DiffractionGratingApp />, document.getElementById('root'));
-    </script>
+</main>
 </body>
 </html>
