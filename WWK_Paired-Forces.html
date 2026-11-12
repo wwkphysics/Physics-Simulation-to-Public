@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paired Forces — Trolley Experiment | WWK Physics</title>
+<style>:root{font-family:system-ui,sans-serif;color:#172a43;background:#f4f7fb}
+*{box-sizing:border-box}
+body{margin:0;line-height:1.5}
+header,main,footer{max-width:1160px;margin:auto;padding:16px}
+header{padding-bottom:4px}
+h1{font-size:clamp(1.8rem,4vw,2.5rem);margin:5px 0}
+h2{font-size:1rem;margin:0 0 10px}
+p{margin:8px 0}
+a{color:#245bb3}
+small,.note{color:#4b6079;font-size:.85rem}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:14px;align-items:start}
+.card{background:white;border:1px solid #d8e3ef;border-radius:14px;padding:16px;min-width:0}
+.scene{background:#10213b;color:#e9f3ff;padding:12px}
+.scene p{padding:0 8px}
+.scene small{color:#bdcfe5}
+.scene canvas{display:block;width:100%;height:auto}
+.field{margin-bottom:10px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{display:block;font-weight:650;font-size:.85rem;margin-bottom:4px}
+input,select,button{font:inherit}
+input[type=number],select{width:100%;padding:7px;border:1px solid #96abc5;border-radius:6px;background:white;color:inherit}
+input[type=range]{width:100%;accent-color:#245bb3}
+button{border:1px solid #91a9c8;background:white;border-radius:7px;color:#1d477f;padding:8px 10px;cursor:pointer;font-size:.85rem;font-weight:650}
+button.primary,button[aria-pressed=true]{background:#245bb3;color:white;border-color:#245bb3}
+button:disabled{opacity:.55;cursor:default}
+:focus-visible{outline:3px solid #ecad36;outline-offset:2px}
+.buttons{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}
+details{margin:10px 0}
+summary{cursor:pointer;color:#244d7d;font-weight:650}
+.section{margin-top:14px}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
+.metric{background:#eef4fb;padding:10px;border-radius:8px}
+.metric strong{display:block;font-size:1.18rem}
+.metric small{display:block}
+.pass{background:#e4f5eb}
+.fail{background:#fff0e4}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:7px;border-bottom:1px solid #e0e8f2}
+.table-wrap{overflow:auto}
+.lightCanvas{display:block;max-width:720px;width:100%;height:auto;background:#f1f6fd;border-radius:8px;margin:10px auto}
+[hidden]{display:none!important}
+@media(max-width:720px){.layout{grid-template-columns:1fr}
+.metrics{grid-template-columns:repeat(2,1fr)}
+header,main,footer{padding-left:12px;padding-right:12px}
+}
+
+.scene canvas,.plots canvas{display:block;width:100%;height:auto}
+.plots{margin-top:14px}.plots canvas{background:#f6f9fd;border-radius:8px;margin-top:6px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.85rem;font-weight:650}
+.red{color:#aa2136}.blue{color:#1855a5}
+.scene label{color:#e9f3ff}.scene input{accent-color:#ffcf72}
+#status{min-height:1.5em}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+.metric strong{font-size:1.05rem}.metric p{margin:4px 0;font-variant-numeric:tabular-nums}
+.check{display:flex;gap:7px;align-items:center}
+nav{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.88rem}
+</style>
+</head>
+<body>
+<header>
+<nav aria-label="Simulation links">
+<a href="https://wwkphysics.github.io/Physics-Simulation-to-Public/">All simulations</a>
+<a href="https://wwkphysics.github.io/Physics-Simulation-to-Public/WWK_Bus-and-Car-Collision.html">Bus and car collision</a>
+</nav>
+<h1>Paired Forces — Trolley Experiment</h1>
+<p class="note">Compare the readings of the two force sensors during a collision. Take rightwards as positive.</p>
+</header>
+<main>
+<div class="layout">
+<div>
+<section class="card scene" aria-label="Collision animation">
+<canvas id="scene" width="720" height="255" role="img" aria-label="Red trolley A and blue trolley B have facing force sensors and rubber bumpers."></canvas>
+<p id="status" role="status">Ready to record.</p>
+<label for="timeline">Time from first contact <output id="time" for="timeline"></output></label>
+<input id="timeline" type="range" min="0" max="1000" value="0" aria-label="Time from first contact">
+</section>
+<section class="card plots" aria-labelledby="graphTitle">
+<h2 id="graphTitle">Force–time graphs</h2>
+<div class="legend"><span class="red">Force on A by B</span><span class="blue">Force on B by A</span></div>
+<canvas id="graph" width="720" height="250" role="img" aria-label="Simulated signed force traces on a common time axis. Rightwards is positive."></canvas>
+<p class="note">Simulated force data. The vertical cursor marks the displayed instant.</p>
+</section>
+</div>
+<section class="card" aria-label="Controls">
+<h2>Set up the trial</h2>
+<div class="field"><label for="approach">Starting motion</label><select id="approach"><option value="one">A moves towards stationary B</option><option value="both">Both move towards each other</option></select></div>
+<label class="check"><input id="harder" type="checkbox"> Harder push</label>
+<label class="check"><input id="double" type="checkbox"> Double the mass of A</label>
+<div class="field"><label for="layout">Graph layout</label><select id="layout"><option value="overlay">Overlay the two traces</option><option value="split">Two aligned graphs</option></select></div>
+<label class="check"><input id="fixed" type="checkbox"> Keep force scale between trials</label>
+<div class="buttons"><button class="primary" id="play">Start recording</button><button id="reset">Rewind</button><button id="peak">Jump to peak force</button></div>
+<h2>Readings at the cursor</h2>
+<div class="metrics">
+<div class="metric"><strong class="red">Trolley A</strong><p id="forceA"></p></div>
+<div class="metric"><strong class="blue">Trolley B</strong><p id="forceB"></p></div>
+</div>
+<details><summary>Discuss the two readings</summary>
+<p>At each instant the two contact forces have equal magnitudes and opposite directions. They act simultaneously on different objects.</p>
+<p>Compare the two sensor readings at the same time. Repeat with a harder push and with twice the mass of A. Compare the shape, peak and duration of the pulses.</p>
+</details>
+</section>
+</div>
+</main>
+<footer><details><summary>Model assumptions</summary>
+<p>The motion is one-dimensional. Horizontal forces during contact come from the bumpers. The model treats the two contacting ends as elastic springs in series. The animation is slowed down and the time axis shows model time.</p>
+<p>Each trolley carries a force sensor and a rubber bumper. The model uses ideal sensors and smooth elastic pulses. The graph shows calculated readings for this simulation.</p>
+<p><a href="https://openstax.org/books/physics/pages/4-4-newtons-third-law-of-motion">Reference: Newton’s third law</a></p>
+</details></footer>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+function line(ctx,x1,y1,x2,y2,colour,width=2,dash=[]){
+  ctx.save();ctx.strokeStyle=colour;ctx.lineWidth=width;ctx.setLineDash(dash);
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.restore();
+}
+function circle(ctx,x,y,r,colour){
+  ctx.fillStyle=colour;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+}
+function label(ctx,value,x,y,colour='#e9f3ff',size=18,align='center'){
+  ctx.fillStyle=colour;ctx.font='600 '+size+'px system-ui';ctx.textAlign=align;ctx.textBaseline='middle';ctx.fillText(value,x,y);
+}
+function arrow(ctx,x1,y1,x2,y2,colour){
+  if(Math.hypot(x2-x1,y2-y1)<1)return;
+  line(ctx,x1,y1,x2,y2,colour,3);
+  const angle=Math.atan2(y2-y1,x2-x1);
+  ctx.fillStyle=colour;ctx.beginPath();ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-11*Math.cos(angle-.48),y2-11*Math.sin(angle-.48));
+  ctx.lineTo(x2-11*Math.cos(angle+.48),y2-11*Math.sin(angle+.48));ctx.closePath();ctx.fill();
+}
+function format(value,digits=2){return (Math.abs(value)<1e-8?0:value).toFixed(digits);}
+function readNumber(input,fallback){
+  const value=input.valueAsNumber;
+  if(!Number.isFinite(value))return fallback;
+  const min=Number(input.min),max=Number(input.max),step=Number(input.step);
+  const bounded=Math.min(max,Math.max(min,value));
+  return Number((min+Math.round((bounded-min)/step)*step).toFixed(6));
+}
+
+const vehicle=false;
+const A=vehicle?'Bus':'A', B=vehicle?'Car':'B';
+const colours={a:'#db405a',b:'#337ee4',traceA:'#b4253e',traceB:'#2059aa'};
+const scene=$('scene').getContext('2d'), graph=$('graph').getContext('2d');
+function modelFor(settings){
+  const {mA,mB,vA,vB,kA,kB}=settings;
+  const total=mA+mB, reduced=mA*mB/total, k=kA*kB/(kA+kB);
+  const omega=Math.sqrt(k/reduced), duration=Math.PI/omega;
+  const closing=vA-vB;
+  return {...settings,total,k,omega,duration,closing,centreSpeed:(mA*vA+mB*vB)/total,peak:k*closing/omega};
+}
+function atTime(model,t){
+  const {duration,omega,closing,peak,mA,mB,total,centreSpeed,kA,kB}=model;
+  const inContact=t>0&&t<duration;
+  const overlap=inContact?closing/omega*Math.sin(omega*t):t<=0?closing*t:-closing*(t-duration);
+  const force=inContact?peak*Math.sin(omega*t):0;
+  return {force,aA:-force/mA,aB:force/mB,dA:force/kA,dB:force/kB,
+    xA:centreSpeed*t+mB/total*overlap,xB:centreSpeed*t-mA/total*overlap};
+}
+function settings(){
+  if(vehicle)return {mA:readNumber($('massA'),12000),mB:readNumber($('massB'),1500),
+    vA:readNumber($('speed'),10),vB:0,kA:readNumber($('stiffA'),1.2)*1e6,kB:readNumber($('stiffB'),.3)*1e6};
+  const speed=$('harder').checked?1:.5;
+  return {mA:$('double').checked?1:.5,mB:.5,vA:speed,vB:$('approach').value==='both'?-speed:0,kA:10000,kB:10000};
+}
+let model,time,logged,start,end,px,request=null,last=null;
+const unit=vehicle?'kN':'N', divisor=vehicle?1000:1;
+function signed(value,digits=2){
+  if(Math.abs(value)<.5*10**(-digits))return format(0,digits);
+  return (value>0?'+':'−')+format(Math.abs(value),digits);
+}
+function rewind(){
+  cancelAnimationFrame(request);request=null;last=null;
+  model=modelFor(settings());start=-.38*model.duration;end=1.3*model.duration;
+  time=logged=start;
+  px=85/(Math.abs(model.centreSpeed)*end+model.closing*model.duration*.38);
+  const compressionLimit=vehicle?42:20;
+  px=Math.min(px,compressionLimit/(model.peak/Math.min(model.kA,model.kB)));
+  $('play').textContent=vehicle?'Play collision':'Start recording';
+  if(vehicle)$('explain').textContent='During contact, the horizontal acceleration magnitude is F/m. The bus-to-car mass ratio is '+format(model.mA/model.mB,2)+'. The car-to-bus acceleration magnitude ratio has the same value.';
+  render();
+}
+function drawObject(ref,isA,compression){
+  const colour=isA?colours.a:colours.b,base=184;
+  const width=vehicle?(isA?204:151):148;
+  const left=isA?ref-width:ref;
+  const shrink=compression*px;
+  const assembly=41;
+  const bodyLeft=left+(isA?0:vehicle?shrink:assembly);
+  const bodyWidth=width-(vehicle?shrink:assembly);
+  const height=vehicle?(isA?81:39):36;
+  scene.fillStyle=colour;
+  scene.fillRect(bodyLeft,base-height,bodyWidth,height);
+  if(vehicle){
+    scene.fillStyle='#b9e1fa';
+    if(isA){for(let i=0;i<5;i++)scene.fillRect(left+13+i*32,base-69,23,24);}
+    else{
+      scene.beginPath();scene.moveTo(left+41,base-39);scene.lineTo(left+62,base-65);
+      scene.lineTo(left+101,base-65);scene.lineTo(left+123,base-39);scene.closePath();scene.fill();
+    }
+    if(shrink>.5){
+      scene.fillStyle='#ffd484';
+      const front=isA?ref-shrink:ref+shrink;
+      scene.fillRect(isA?front-7:front,base-height,7,height);
+    }
+  }else{
+    const sensor=isA?ref-assembly:ref+26;
+    scene.fillStyle='#dae5f5';scene.fillRect(sensor,base-25,15,21);
+    scene.fillStyle='#ffd484';
+    scene.fillRect(isA?ref-26:ref+shrink,base-23,26-shrink,17);
+  }
+  for(const wheel of [bodyLeft+23,bodyLeft+bodyWidth-23]){
+    circle(scene,wheel,base+3,12,'#091628');
+    circle(scene,wheel,base+3,4,'#acbfd6');
+  }
+  label(scene,(isA?A:B)+' · '+(isA?model.mA:model.mB)+' kg',bodyLeft+bodyWidth/2,base-(vehicle&&isA?23:18),'#fff',17);
+  return left+width/2;
+}
+function drawScene(reading){
+  scene.clearRect(0,0,720,255);
+  line(scene,30,200,690,200,'#849ebf',3);
+  const ca=drawObject(350+reading.xA*px,true,reading.dA);
+  const cb=drawObject(350+reading.xB*px,false,reading.dB);
+  if(reading.force>0){
+    const size=72*reading.force/model.peak;
+    arrow(scene,ca,73,ca-size,73,'#ff8497');
+    arrow(scene,cb,73,cb+size,73,'#87baff');
+    label(scene,format(reading.force/divisor)+' '+unit,ca,48,'#ffbdc7',16);
+    label(scene,format(reading.force/divisor)+' '+unit,cb,48,'#bad8ff',16);
+  }
+  label(scene,vehicle?'Highlighted ends show compression during contact.':'Pale blocks: force sensors · yellow tips: rubber bumpers',360,230,'#c7d9f1',15);
+}
+function drawGraphs(){
+  const canvas=$('graph'),split=!vehicle&&$('layout').value==='split';
+  const height=split?405:250;
+  if(canvas.height!==height)canvas.height=height;
+  graph.clearRect(0,0,720,height);
+  const minT=vehicle?start:-.012,maxT=vehicle?end:.038;
+  const peak=model.peak/divisor;
+  const tickStep=vehicle?50:5;
+  const range=!vehicle&&$('fixed').checked?100:Math.ceil(peak*1.12/tickStep)*tickStep;
+  const x=t=>67+(t-minT)/(maxT-minT)*625;
+  const rows=split?[[22,167,[-1]],[211,356,[1]]]:[[25,198,[-1,1]]];
+  rows.forEach(([top,bottom,signs],index)=>{
+    const y=f=>(top+bottom)/2-f/range*(bottom-top)/2;
+    for(const value of [-range,-range/2,0,range/2,range]){
+      line(graph,67,y(value),692,y(value),value===0?'#879ab4':'#d9e3ef');
+      label(graph,signed(value,Number.isInteger(value)?0:1),57,y(value),'#425975',13,'right');
+    }
+    for(let i=0;i<=5;i++){
+      const t=minT+(maxT-minT)*i/5;
+      line(graph,x(t),top,x(t),bottom,'#d9e3ef',1);
+      if(index===rows.length-1)label(graph,format(t,vehicle?2:3),x(t),bottom+17,'#425975',13);
+    }
+    line(graph,x(0),top,x(0),bottom,'#b3c1d2',1,[4,3]);
+    line(graph,x(time),top,x(time),bottom,'#263f60',1.5,[5,4]);
+    for(const sign of signs){
+      graph.beginPath();graph.strokeStyle=sign<0?colours.traceA:colours.traceB;graph.lineWidth=2.7;
+      const stop=Math.max(minT,logged);
+      for(let i=0;i<=220;i++){
+        const t=minT+(stop-minT)*i/220;
+        const py=y(sign*atTime(model,t).force/divisor);
+        if(i===0)graph.moveTo(x(t),py);else graph.lineTo(x(t),py);
+      }
+      graph.stroke();
+      circle(graph,x(time),y(sign*atTime(model,time).force/divisor),4,graph.strokeStyle);
+    }
+    label(graph,split?(index===0?'Force on A by B / N':'Force on B by A / N'):'Force / '+unit,67,top-11,'#425975',14,'left');
+  });
+  label(graph,'Time from first contact / s',380,height-13,'#425975',15);
+}
+function render(){
+  const r=atTime(model,time);
+  drawScene(r);drawGraphs();
+  $('timeline').value=Math.round((time-start)/(end-start)*1000);
+  $('timeline').setAttribute('aria-valuetext',format(time,vehicle?3:4)+' seconds from first contact');
+  $('time').textContent=signed(time,vehicle?3:4)+' s';
+  const phase=time===start?'Ready to '+(vehicle?'play.':'record.'):time<=0?'Approaching':time<model.duration?'In contact':'Separated';
+  if($('status').textContent!==phase)$('status').textContent=phase;
+  $('forceA').textContent='F = '+signed(-r.force/divisor)+' '+unit;
+  $('forceB').textContent='F = '+signed(r.force/divisor)+' '+unit;
+  if(vehicle){
+    $('accelA').textContent='a = '+signed(r.aA)+' m s⁻²';$('accelB').textContent='a = '+signed(r.aB)+' m s⁻²';
+    $('crushA').textContent='Compression '+format(r.dA*100,1)+' cm';$('crushB').textContent='Compression '+format(r.dB*100,1)+' cm';
+  }
+}
+function pause(){
+  cancelAnimationFrame(request);request=null;last=null;
+  $('play').textContent=time>=end?'Replay':'Resume';
+}
+function frame(timestamp){
+  if(last!==null)time=Math.min(end,time+Math.min((timestamp-last)/1000,.05)*(end-start)/4.5);
+  last=timestamp;logged=Math.max(logged,time);render();
+  if(time>=end){pause();return;}
+  request=requestAnimationFrame(frame);
+}
+$('play').addEventListener('click',()=>{
+  if(request!==null){pause();return;}
+  if(time>=end)rewind();
+  last=null;$('play').textContent='Pause';request=requestAnimationFrame(frame);
+});
+$('reset').addEventListener('click',rewind);
+$('peak').addEventListener('click',()=>{
+  time=model.duration/2;logged=Math.max(logged,time);pause();render();
+});
+$('timeline').addEventListener('input',()=>{
+  time=start+(end-start)*Number($('timeline').value)/1000;
+  logged=Math.max(logged,time);pause();render();
+});
+if(vehicle){
+  for(const id of ['massA','massB','speed','stiffA','stiffB']){
+    const input=$(id);let value=Number(input.value);
+    input.addEventListener('change',()=>{value=readNumber(input,value);input.value=value;rewind();});
+    if(id==='stiffB')$('equal').addEventListener('click',()=>{value=Number($('stiffA').value);input.value=value;rewind();});
+  }
+}else{
+  for(const id of ['approach','harder','double'])$(id).addEventListener('change',rewind);
+  for(const id of ['layout','fixed'])$(id).addEventListener('change',drawGraphs);
+}
+rewind();
+</script>
+</body>
+</html>
