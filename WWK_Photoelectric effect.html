@@ -78,7 +78,7 @@
     <span class="note">WWK Physics · Atomic World</span>
     <h1>Photoelectric Effect Simulator</h1>
     <p class="subtitle observation-only">Investigate how light and collector voltage affect the current in a photocell.</p>
-    <p class="subtitle particle-only">Explore how photon energy, photon arrival rate and collector voltage affect photoelectrons.</p>
+    <p class="subtitle particle-only">See how wavelength, light intensity and collector voltage affect photoelectrons.</p>
     <nav class="view-switch" aria-label="Teaching view">
       <button id="observationView" aria-pressed="true">Observation</button>
       <button id="particleView" aria-pressed="false">Reveal particle model</button>
@@ -105,8 +105,8 @@
         <div class="scale"><span>100 nm · UV</span><span>850 nm · IR</span></div>
       </div>
       <div class="field">
-        <div class="label-row"><label id="lightLevelLabel" for="flux">Light intensity</label><output id="fluxValue" for="flux">50%</output></div>
-        <input id="flux" type="range" min="0" max="100" step="1" value="50">
+        <div class="label-row"><label for="intensity">Light intensity</label><output id="intensityValue" for="intensity">50%</output></div>
+        <input id="intensity" type="range" min="0" max="100" step="1" value="50">
       </div>
       <div class="field">
         <div class="label-row"><label for="voltage">Collector voltage, V</label><output id="voltageValue" for="voltage voltageNumber">0.00 V</output></div>
@@ -185,6 +185,7 @@
         </svg>
         <div>
         <p class="note">Blue curve: current settings. Dot: selected voltage. Current is in arbitrary units.</p>
+        <p><strong>Saturation current:</strong> <span id="saturationCurrent">50.0 units</span></p>
         <div class="buttons"><button id="pin">Keep reference</button><button id="clearReference" disabled>Clear reference</button></div>
         <p id="referenceLabel">No reference curve saved.</p>
         <p class="note">The graph uses an idealised energy distribution. Real experimental curves can have different shapes.</p>
@@ -193,25 +194,28 @@
     </section>
   <footer class="model-note observation-only">
     <details><summary>How to use this simulation</summary>
-      <ul class="guide"><li>Choose a wavelength and observe the current.</li><li>Change light intensity at a fixed wavelength.</li><li>Vary the collector voltage. When does the current fall to zero?</li></ul>
-      <p>Current is shown in arbitrary units. Light intensity is relative; compare intensities at a fixed wavelength. V = potential of collector − potential of target. UV and IR use false colours; apparatus dimensions are not to scale.</p>
+      <ul class="guide"><li>Keep the collector voltage positive. Change the wavelength at fixed light intensity and observe the current.</li><li>Change light intensity at a fixed wavelength.</li><li>Vary the collector voltage. When does the current fall to zero?</li></ul>
+      <p>Current is shown in arbitrary units. Light intensity is the power per unit area reaching the target, expressed as a percentage of the model maximum. V = potential of collector − potential of target. UV and IR use false colours. Apparatus dimensions are not to scale.</p>
     </details>
   </footer>
   <footer class="model-note particle-only">
     <details><summary>Teaching guide and model assumptions</summary>
-      <ul class="guide"><li>Increase wavelength until emission stops.</li><li>At fixed wavelength, increase light intensity to increase the photon arrival rate.</li><li>Show energy, then apply a retarding voltage to find the stopping potential.</li><li>Show the I–V graph to compare settings using a reference curve.</li></ul>
-      <p>This is an idealised one-dimensional model with uniform initial electron energies from 0 to K<sub>max</sub>, emission towards the collector, a uniform electric field and complete collection at positive voltage. Electrons with positive initial energy are also collected at zero voltage. Photon arrival rate is held fixed when wavelength changes. The displayed current is a steady model value, not a count of the animated dots. V = potential of collector − potential of target. Particle sizes and apparatus dimensions are not to scale. UV and IR use false colours. Uses c ≈ 3.00 × 10⁸ m s⁻¹ and hc ≈ 1240 eV nm.</p>
+      <ul class="guide"><li>At fixed intensity, compare the saturation currents at two wavelengths using a reference curve. Then increase the wavelength past the threshold.</li><li>Show energy and apply a retarding voltage. Compare the stopping potentials at different wavelengths.</li></ul>
+      <p>Light intensity is the power per unit area reaching the target, expressed as a percentage of the model maximum. At fixed intensity and illuminated area, a longer wavelength means less energy per photon and more photons arriving each second. The model assumes a constant fraction of incident photons produces photoelectrons whenever the photon energy is sufficient. That fraction can vary with wavelength in a real photocell.</p>
+      <p>This one-dimensional model uses uniform initial electron energies from 0 to K<sub>max</sub>, emission towards the collector and a uniform electric field. All emitted electrons are collected at positive voltage. Electrons with positive initial energy are also collected at zero voltage. The displayed current is a steady model value. V = potential of collector − potential of target. Particle sizes and apparatus dimensions are not to scale. UV and IR use false colours. Uses c ≈ 3.00 × 10⁸ m s⁻¹ and hc ≈ 1240 eV nm.</p>
     </details>
   </footer>
   <script>
     'use strict';
     const HC = 1240;
     const C = 3e8;
+    const REFERENCE_WAVELENGTH = 400; // Keep the original current scale at 400 nm.
+    const GRAPH_MAX_CURRENT = 160; // Maximum is 155 at 620 nm and 100% intensity for metal A.
     const START_X = 200, COLLECTOR_X = 500, GAP = COLLECTOR_X - START_X;
     const SPEED_SCALE = 120; // px s^-1 per sqrt(eV); animation scale only.
     const EPSILON = 1e-10;
     const byId = id => document.getElementById(id);
-    const state = { wavelength: 400, workFunction: 2.28, flux: 50, voltage: 0 };
+    const state = { wavelength: 400, workFunction: 2.28, intensity: 50, voltage: 0 };
     let view = new URLSearchParams(window.location.search).get('view') === 'particles' ? 'particles' : 'observation';
     let reference = null;
     let running = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -229,12 +233,18 @@
         thresholdFrequency: settings.workFunction * C / (HC * 1e-9),
         thresholdWavelength: HC / settings.workFunction };
     }
-    function currentAtVoltage(settings, voltage) {
-      const model = calculateModel(settings);
-      if (!model.canEmit || settings.flux <= 0) return 0;
-      if (model.maxKE <= EPSILON) return voltage > 0 ? settings.flux : 0;
+    function relativePhotonRate(settings) {
+      // Photon rate = incident power / photon energy. The illuminated area is fixed.
+      return settings.intensity * settings.wavelength / REFERENCE_WAVELENGTH;
+    }
+    function saturationCurrent(settings, model) {
+      return model.canEmit ? relativePhotonRate(settings) : 0;
+    }
+    function currentAtVoltage(settings, voltage, model = calculateModel(settings)) {
+      const saturation = saturationCurrent(settings, model);
+      if (model.maxKE <= EPSILON) return voltage > 0 ? saturation : 0;
       const fraction = voltage >= 0 ? 1 : Math.max(0, 1 + voltage / model.maxKE);
-      return settings.flux * fraction;
+      return saturation * fraction;
     }
     function electronAcceleration(voltage) {
       // 1/2 v^2 = (SPEED_SCALE^2 / 2) K; across GAP, energy changes by V eV.
@@ -278,14 +288,13 @@
       byId('observationView').setAttribute('aria-pressed', view === 'observation');
       byId('particleView').setAttribute('aria-pressed', view === 'particles');
       byId('particleView').textContent = view === 'particles' ? 'Particle model' : 'Reveal particle model';
-      byId('lightLevelLabel').textContent = view === 'particles' ? 'Relative photon arrival rate' : 'Light intensity';
       const materialNames = ['Sodium (Na)', 'Calcium (Ca)', 'Zinc (Zn)', 'Copper (Cu)', 'Platinum (Pt)', 'Model metal A'];
       Array.from(byId('material').options).forEach((option, i) => { option.textContent = view === 'particles' ? `${materialNames[i]} · ${Number(option.value).toFixed(2)} eV` : materialNames[i]; });
       byId('apparatusDesc').textContent = view === 'particles' ? 'Light falls on the target. Emitted electrons travel towards the collector. Negative collector voltage retards them.' : 'A continuous beam of light falls on the target in a photocell. An ammeter shows the current and a variable power supply sets the collector voltage.';
       byId('lightBeam').setAttribute('fill', lightColour(state.wavelength));
-      byId('lightBeam').setAttribute('opacity', state.flux === 0 ? 0 : 0.12 + state.flux / 100 * 0.48);
+      byId('lightBeam').setAttribute('opacity', state.intensity === 0 ? 0 : 0.12 + state.intensity / 100 * 0.48);
       byId('wavelengthValue').textContent = `${state.wavelength} nm`;
-      byId('fluxValue').textContent = `${state.flux}%`;
+      byId('intensityValue').textContent = `${state.intensity}%`;
       const atStopping = model.canEmit && Math.abs(state.voltage + model.maxKE) < EPSILON;
       byId('voltageValue').textContent = `${formatValue(state.voltage)} V${atStopping && view === 'particles' ? ' (−Vₛ)' : ''}`;
       byId('voltage').value = state.voltage;
@@ -301,30 +310,31 @@
       byId('maxKE').textContent = model.canEmit ? `${formatValue(model.maxKE)} eV` : '—';
       byId('stoppingPotential').textContent = model.canEmit ? `${formatValue(model.stoppingPotential)} V` : '—';
       byId('setStopping').disabled = !model.canEmit;
-      const current = currentAtVoltage(state, state.voltage);
+      const current = currentAtVoltage(state, state.voltage, model);
+      const saturation = saturationCurrent(state, model);
       byId('meter').textContent = `${current.toFixed(1)} units`;
-      byId('observationStatus').textContent = state.flux === 0 ? 'Light off. No current detected.' : current <= EPSILON ? 'No current detected.' : 'Current detected.';
+      byId('saturationCurrent').textContent = `${saturation.toFixed(1)} units`;
+      byId('observationStatus').textContent = state.intensity === 0 ? 'Light off. No current detected.' : current <= EPSILON ? 'No current detected.' : 'Current detected.';
       let status;
-      if (state.flux === 0) status = 'Light off: no photons arrive and no electrons are emitted.';
+      if (state.intensity === 0) status = 'Light off: no photons arrive and no electrons are emitted.';
       else if (!model.canEmit) status = 'No emission: photon energy is below the work function.';
       else if (model.maxKE <= EPSILON) status = 'At threshold: electrons have zero initial kinetic energy. A positive collector voltage is needed to collect them.';
       else if (current <= EPSILON) status = 'Electrons are emitted, but the retarding voltage stops all of them from reaching the collector.';
       else status = 'Electrons are emitted and reach the collector.';
-      if (atStopping && state.flux > 0 && model.maxKE > EPSILON) status += ' Exact stopping voltage selected.';
+      if (atStopping && state.intensity > 0 && model.maxKE > EPSILON) status += ' Exact stopping voltage selected.';
       byId('status').textContent = status;
       byId('pause').textContent = running ? 'Pause animation' : 'Play animation';
-      drawGraph();
+      drawGraph(model, current, saturation);
     }
-    function drawGraph() {
-      const model = calculateModel(state);
+    function drawGraph(model, current, saturation) {
       const refModel = reference ? calculateModel(reference) : null;
       const minV = -Math.max(1.2, model.maxKE * 1.25, refModel ? refModel.maxKE * 1.25 : 0, -state.voltage * 1.1);
       const maxV = Math.max(2, state.voltage * 1.15);
       const x = v => 42 + (v - minV) * 260 / (maxV - minV);
-      const y = current => 192 - current * 1.48;
+      const y = value => 192 - value * 148 / GRAPH_MAX_CURRENT;
       let axes = '';
-      for (const current of [0, 50, 100]) {
-        axes += `<line x1="42" y1="${y(current)}" x2="302" y2="${y(current)}" stroke="#dce4ee"/><text x="35" y="${y(current)+4}" text-anchor="end" font-size="11" fill="#52657d">${current}</text>`;
+      for (const tick of [0, 50, 100, 150]) {
+        axes += `<line x1="42" y1="${y(tick)}" x2="302" y2="${y(tick)}" stroke="#dce4ee"/><text x="35" y="${y(tick)+4}" text-anchor="end" font-size="11" fill="#52657d">${tick}</text>`;
       }
       for (let i = 0; i <= 4; i++) {
         const v = minV + i * (maxV - minV) / 4;
@@ -332,21 +342,23 @@
       }
       axes += `<line x1="42" y1="192" x2="302" y2="192" stroke="#52657d"/><line x1="${x(0)}" y1="30" x2="${x(0)}" y2="192" stroke="#99a9bd"/><text x="${x(0)}" y="29" text-anchor="middle" font-size="10" fill="#52657d">V = 0</text><text x="12" y="16" font-size="11" fill="#52657d">I / units</text><text x="175" y="236" text-anchor="middle" font-size="11" fill="#52657d">Collector voltage / V</text>`;
       byId('graphAxes').innerHTML = axes;
-      const pathFor = settings => {
-        const m = calculateModel(settings);
+      const pathFor = (settings, m) => {
         // At the exact threshold the chosen distribution collapses to zero initial energy.
-        if (m.canEmit && m.maxKE <= EPSILON && settings.flux > 0) return `M ${x(minV)} ${y(0)} L ${x(0)} ${y(0)} M ${x(0)} ${y(settings.flux)} L ${x(maxV)} ${y(settings.flux)}`;
+        if (m.canEmit && m.maxKE <= EPSILON && settings.intensity > 0) {
+          const plateauY = y(currentAtVoltage(settings, maxV, m));
+          return `M ${x(minV)} ${y(0)} L ${x(0)} ${y(0)} M ${x(0)} ${plateauY} L ${x(maxV)} ${plateauY}`;
+        }
         const points = [minV, ...(m.canEmit && -m.maxKE > minV ? [-m.maxKE] : []), 0, maxV];
-        return points.map((v, i) => `${i ? 'L' : 'M'} ${x(v)} ${y(currentAtVoltage(settings, v))}`).join(' ');
+        return points.map((v, i) => `${i ? 'L' : 'M'} ${x(v)} ${y(currentAtVoltage(settings, v, m))}`).join(' ');
       };
-      byId('curve').setAttribute('d', pathFor(state));
-      byId('referenceCurve').setAttribute('d', reference ? pathFor(reference) : '');
+      byId('curve').setAttribute('d', pathFor(state, model));
+      byId('referenceCurve').setAttribute('d', reference ? pathFor(reference, refModel) : '');
       byId('operatingPoint').setAttribute('cx', x(state.voltage));
-      byId('operatingPoint').setAttribute('cy', y(currentAtVoltage(state, state.voltage)));
-      byId('stoppingMarker').innerHTML = model.canEmit && state.flux > 0 ? `<line x1="${x(-model.maxKE)}" y1="192" x2="${x(-model.maxKE)}" y2="174" stroke="#245cc0"/><text x="${x(-model.maxKE)}" y="168" text-anchor="middle" font-size="10" fill="#245cc0">−Vₛ = ${formatValue(-model.maxKE)} V</text>` : '';
-      byId('graphDescription').textContent = `Current settings: wavelength ${state.wavelength} nanometres, photon arrival rate ${state.flux} percent. Current at ${formatValue(state.voltage)} volts is ${currentAtVoltage(state, state.voltage).toFixed(1)} arbitrary units. ${model.canEmit ? `Stopping potential ${formatValue(model.maxKE)} volts.` : 'No photoelectric emission.'}`;
+      byId('operatingPoint').setAttribute('cy', y(current));
+      byId('stoppingMarker').innerHTML = model.canEmit && state.intensity > 0 ? `<line x1="${x(-model.maxKE)}" y1="192" x2="${x(-model.maxKE)}" y2="174" stroke="#245cc0"/><text x="${x(-model.maxKE)}" y="168" text-anchor="middle" font-size="10" fill="#245cc0">−Vₛ = ${formatValue(-model.maxKE)} V</text>` : '';
+      byId('graphDescription').textContent = `Current settings: wavelength ${state.wavelength} nanometres, light intensity ${state.intensity} percent. Current at ${formatValue(state.voltage)} volts is ${current.toFixed(1)} arbitrary units. Saturation current is ${saturation.toFixed(1)} arbitrary units. ${model.canEmit ? `Stopping potential ${formatValue(model.maxKE)} volts.` : 'No photoelectric emission.'}`;
       byId('clearReference').disabled = !reference;
-      byId('referenceLabel').textContent = reference ? `Dashed reference: ${reference.materialName}, ${reference.wavelength} nm, ${reference.flux}%.` : 'No reference curve saved.';
+      byId('referenceLabel').textContent = reference ? `Dashed reference: ${reference.materialName}, ${reference.wavelength} nm, ${reference.intensity}% intensity. Saturation current: ${saturationCurrent(reference, refModel).toFixed(1)} units.` : 'No reference curve saved.';
     }
     function circle(x, y, radius, colour) {
       const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -358,7 +370,7 @@
       previousTime = timestamp;
       if (running && view === 'particles') {
         const model = calculateModel(state);
-        photonBudget += dt * 8 * state.flux / 100;
+        photonBudget += dt * 8 * relativePhotonRate(state) / 100;
         while (photonBudget >= 1) {
           photons.push({ x: 267, y: 105, targetY: 188 + Math.random() * 124 });
           photonBudget--;
@@ -395,7 +407,7 @@
       clearParticles(); update();
     }
     byId('wavelength').addEventListener('input', event => { state.wavelength = Number(event.target.value); clearParticles(); update(); });
-    byId('flux').addEventListener('input', event => { state.flux = Number(event.target.value); clearParticles(); update(); });
+    byId('intensity').addEventListener('input', event => { state.intensity = Number(event.target.value); clearParticles(); update(); });
     byId('material').addEventListener('change', event => { state.workFunction = Number(event.target.value); clearParticles(); update(); });
     byId('voltage').addEventListener('input', event => changeVoltage(Number(event.target.value)));
     byId('voltageNumber').addEventListener('change', event => {
@@ -430,8 +442,8 @@
     });
     byId('clearReference').addEventListener('click', () => { reference = null; update(); });
     byId('reset').addEventListener('click', () => {
-      Object.assign(state, { wavelength: 400, workFunction: 2.28, flux: 50, voltage: 0 });
-      byId('material').value = '2.28'; byId('wavelength').value = '400'; byId('flux').value = '50';
+      Object.assign(state, { wavelength: 400, workFunction: 2.28, intensity: 50, voltage: 0 });
+      byId('material').value = '2.28'; byId('wavelength').value = '400'; byId('intensity').value = '50';
       reference = null; clearParticles(); update();
     });
     document.addEventListener('visibilitychange', () => { previousTime = null; });
