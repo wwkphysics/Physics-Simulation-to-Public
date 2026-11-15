@@ -80,7 +80,8 @@ nav{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.88rem}
 <div class="layout">
 <div>
 <section class="card scene" aria-label="Collision animation">
-<canvas id="scene" width="720" height="284" role="img" aria-label="A bus approaches the rear of a car. The top arrows show contact forces. The arrows below the vehicles show acceleration on a common scale."></canvas>
+<canvas id="scene" width="720" height="357" role="img" aria-label="A bus approaches a stationary car. Fixed road markings and equal-time position dots show how the car speeds up and the bus slows down."></canvas>
+<p><small>Compare the spacing of successive dots on each row. The dots mark equal time intervals.</small></p>
 <div class="compression-view">
 <h2>Enlarged view of the contact ends</h2>
 <div class="end-readings"><span id="zoomA"></span><span id="zoomB"></span></div>
@@ -113,8 +114,8 @@ nav{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.88rem}
 <div class="buttons"><button class="primary" id="play">Play collision</button><button id="reset">Rewind</button><button id="peak">Jump to peak force</button></div>
 <h2>Readings at the cursor</h2>
 <div class="metrics">
-<div class="metric"><strong class="red">Bus</strong><p id="forceA"></p><p id="accelA"></p><p id="crushA"></p></div>
-<div class="metric"><strong class="blue">Car</strong><p id="forceB"></p><p id="accelB"></p><p id="crushB"></p></div>
+<div class="metric"><strong class="red">Bus</strong><p id="forceA"></p><p id="accelA"></p><p id="velocityA"></p><p id="crushA"></p></div>
+<div class="metric"><strong class="blue">Car</strong><p id="forceB"></p><p id="accelB"></p><p id="velocityB"></p><p id="crushB"></p></div>
 </div>
 <details><summary>Explain the effects</summary>
 <p>At each instant the two contact forces have equal magnitudes and opposite directions. They act simultaneously on different objects.</p>
@@ -177,7 +178,9 @@ function atTime(model,t){
   const inContact=t>0&&t<duration;
   const overlap=inContact?closing/omega*Math.sin(omega*t):t<=0?closing*t:-closing*(t-duration);
   const force=inContact?peak*Math.sin(omega*t):0;
+  const closingSpeed=inContact?closing*Math.cos(omega*t):t<=0?closing:-closing;
   return {force,aA:-force/mA,aB:force/mB,dA:force/kA,dB:force/kB,
+    vA:centreSpeed+mB/total*closingSpeed,vB:centreSpeed-mA/total*closingSpeed,
     xA:centreSpeed*t+mB/total*overlap,xB:centreSpeed*t-mA/total*overlap};
 }
 function settings(){
@@ -186,7 +189,9 @@ function settings(){
   const speed=$('harder').checked?1:.5;
   return {mA:$('double').checked?1:.5,mB:.5,vA:speed,vB:$('approach').value==='both'?-speed:0,kA:10000,kB:10000};
 }
-let model,time,logged,start,end,px,request=null,last=null;
+let model,time,logged,start,end,px,contactX,request=null,last=null;
+const busWidth=166,carWidth=136;
+const busMark=busWidth-31,carMark=carWidth-30;
 const unit=vehicle?'kN':'N', divisor=vehicle?1000:1;
 function signed(value,digits=2){
   if(Math.abs(value)<.5*10**(-digits))return format(0,digits);
@@ -194,49 +199,51 @@ function signed(value,digits=2){
 }
 function rewind(){
   cancelAnimationFrame(request);request=null;last=null;
-  model=modelFor(settings());start=-.38*model.duration;end=1.3*model.duration;
+  model=modelFor(settings());
+  start=-.55*model.duration;
+  end=1.85*model.duration;
   time=logged=start;
-  px=85/(Math.abs(model.centreSpeed)*end+model.closing*model.duration*.38);
-  const compressionLimit=vehicle?42:20;
-  px=Math.min(px,compressionLimit/(model.peak/Math.min(model.kA,model.kB)));
+  const leftTravel=-atTime(model,start).xA;
+  const rightTravel=atTime(model,end).xB;
+  const roadRoom=720-2*32-busWidth-carWidth;
+  px=Math.min(roadRoom/(leftTravel+rightTravel),66/(model.peak/model.kA),65/(model.peak/model.kB));
+  const spare=roadRoom-px*(leftTravel+rightTravel);
+  contactX=32+busWidth+px*leftTravel+spare/2;
   $('play').textContent=vehicle?'Play collision':'Start recording';
   if(vehicle)$('explain').textContent='During contact, the horizontal acceleration magnitude is F/m. The bus-to-car mass ratio is '+format(model.mA/model.mB,2)+'. The car-to-bus acceleration magnitude ratio has the same value.';
   render();
 }
-function drawObject(ref,isA,compression){
+function drawObject(ref,isA,compression,displacement){
   const colour=isA?colours.a:colours.b,base=184;
-  const width=vehicle?(isA?204:151):148;
+  const width=isA?busWidth:carWidth;
   const left=isA?ref-width:ref;
   const shrink=compression*px;
-  const assembly=41;
-  const bodyLeft=left+(isA?0:vehicle?shrink:assembly);
-  const bodyWidth=width-(vehicle?shrink:assembly);
-  const height=vehicle?(isA?81:39):36;
+  const bodyLeft=left+(isA?0:shrink);
+  const bodyWidth=width-shrink;
+  const height=isA?81:39;
+  const end=isA?ref-shrink:ref+shrink;
   scene.fillStyle=colour;
   scene.fillRect(bodyLeft,base-height,bodyWidth,height);
-  if(vehicle){
-    scene.fillStyle='#b9e1fa';
-    if(isA){for(let i=0;i<5;i++)scene.fillRect(left+13+i*32,base-69,23,24);}
-    else{
-      scene.beginPath();scene.moveTo(left+41,base-39);scene.lineTo(left+62,base-65);
-      scene.lineTo(left+101,base-65);scene.lineTo(left+123,base-39);scene.closePath();scene.fill();
-    }
-    if(shrink>.5){
-      const front=isA?ref-shrink:ref+shrink;
-      drawFold(scene,front,base-height,base,isA,Math.min(6,shrink*.5));
-    }
+  scene.fillStyle='#b9e1fa';
+  if(isA){
+    for(let i=0;i<4;i++)scene.fillRect(bodyLeft+(i+.5)*bodyWidth/4-7,base-69,14,24);
   }else{
-    const sensor=isA?ref-assembly:ref+26;
-    scene.fillStyle='#dae5f5';scene.fillRect(sensor,base-25,15,21);
-    scene.fillStyle='#ffd484';
-    scene.fillRect(isA?ref-26:ref+shrink,base-23,26-shrink,17);
+    scene.beginPath();scene.moveTo(bodyLeft+bodyWidth*.25,base-39);
+    scene.lineTo(bodyLeft+bodyWidth*.39,base-65);scene.lineTo(bodyLeft+bodyWidth*.72,base-65);
+    scene.lineTo(bodyLeft+bodyWidth*.86,base-39);scene.closePath();scene.fill();
   }
-  for(const wheel of [bodyLeft+23,bodyLeft+bodyWidth-23]){
+  if(shrink>.5)drawFold(scene,end,base-height,base,isA,Math.min(6,shrink*.5));
+  const wheelAngle=displacement*px/12;
+  for(const wheel of [bodyLeft+19,bodyLeft+bodyWidth-19]){
     circle(scene,wheel,base+3,12,'#091628');
-    circle(scene,wheel,base+3,4,'#acbfd6');
+    circle(scene,wheel,base+3,8,'#314e70');
+    for(let spoke=0;spoke<3;spoke++){
+      const angle=wheelAngle+spoke*2*Math.PI/3;
+      line(scene,wheel,base+3,wheel+7*Math.cos(angle),base+3+7*Math.sin(angle),'#c7d9f1',2);
+    }
   }
-  label(scene,(isA?A:B)+' · '+(isA?model.mA:model.mB)+' kg',bodyLeft+bodyWidth/2,base-(vehicle&&isA?23:18),'#fff',17);
-  return left+width/2;
+  label(scene,isA?A:B,bodyLeft+bodyWidth/2,base-(isA?23:19),'#fff',20);
+  return bodyLeft+bodyWidth/2;
 }
 function drawFold(ctx,edge,top,bottom,isA,depth){
   ctx.strokeStyle='#ffd484';
@@ -250,11 +257,12 @@ function drawFold(ctx,edge,top,bottom,isA,depth){
   ctx.stroke();
 }
 function drawScene(reading){
-  scene.clearRect(0,0,720,284);
+  scene.clearRect(0,0,720,357);
   label(scene,'Contact forces',360,18,'#e9f3ff',17);
   line(scene,30,200,690,200,'#849ebf',3);
-  const ca=drawObject(350+reading.xA*px,true,reading.dA);
-  const cb=drawObject(350+reading.xB*px,false,reading.dB);
+  for(let mark=46;mark<690;mark+=40)line(scene,mark,201,mark,208,'#849ebf',2);
+  const ca=drawObject(contactX+reading.xA*px,true,reading.dA,reading.xA);
+  const cb=drawObject(contactX+reading.xB*px,false,reading.dB,reading.xB);
   if(reading.force>0){
     const size=72*reading.force/model.peak;
     arrow(scene,ca,73,ca-size,73,'#ff8497');
@@ -268,6 +276,25 @@ function drawScene(reading){
   arrow(scene,cb,249,cb+reading.aB*accelerationScale,249,'#ffd484');
   label(scene,signed(reading.aA)+' m s⁻²',ca,270,'#ffe9b3',16);
   label(scene,signed(reading.aB)+' m s⁻²',cb,270,'#ffe9b3',16);
+  drawPositionTrail(reading);
+}
+function drawPositionTrail(reading){
+  const interval=model.duration/5;
+  const rows=[
+    {name:'Bus',y:317,offset:-busMark,colour:'#ff8497',key:'xA'},
+    {name:'Car',y:344,offset:carMark,colour:'#87baff',key:'xB'}
+  ];
+  label(scene,'Position dots every '+format(interval,3)+' s',360,294,'#c7d9f1',15);
+  for(const row of rows){
+    const xFor=position=>contactX+position*px+row.offset;
+    label(scene,row.name,12,row.y,row.colour,14,'left');
+    line(scene,51,row.y,690,row.y,'#375474',1);
+    for(let step=-2;step*interval<=time+1e-8;step++){
+      const sample=atTime(model,step*interval);
+      circle(scene,xFor(sample[row.key]),row.y,3,row.colour);
+    }
+    circle(scene,xFor(reading[row.key]),row.y,5,'#eef6ff');
+  }
 }
 function drawCompression(reading){
   const ctx=compressionView;
@@ -341,6 +368,7 @@ function render(){
   $('forceB').textContent='F = '+signed(r.force/divisor)+' '+unit;
   if(vehicle){
     $('accelA').textContent='a = '+signed(r.aA)+' m s⁻²';$('accelB').textContent='a = '+signed(r.aB)+' m s⁻²';
+    $('velocityA').textContent='v = '+signed(r.vA)+' m s⁻¹';$('velocityB').textContent='v = '+signed(r.vB)+' m s⁻¹';
     $('crushA').textContent='Compression '+format(r.dA*100,1)+' cm';$('crushB').textContent='Compression '+format(r.dB*100,1)+' cm';
   }
 }
@@ -349,7 +377,7 @@ function pause(){
   $('play').textContent=time>=end?'Replay':'Resume';
 }
 function frame(timestamp){
-  if(last!==null)time=Math.min(end,time+Math.min((timestamp-last)/1000,.05)*(end-start)/4.5);
+  if(last!==null)time=Math.min(end,time+Math.min((timestamp-last)/1000,.05)*(end-start)/6.5);
   last=timestamp;logged=Math.max(logged,time);render();
   if(time>=end){pause();return;}
   request=requestAnimationFrame(frame);
