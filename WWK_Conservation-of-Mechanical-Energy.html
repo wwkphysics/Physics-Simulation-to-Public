@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conservation of Mechanical Energy | WWK Physics</title>
+<style>
+:root {
+  color-scheme: light;
+  font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  color: #162c3c;
+  background: #ecf2f5;
+  --ink: #162c3c;
+  --muted: #455e6c;
+  --border: #d5e2e8;
+  --kinetic: #157cbd;
+  --potential: #edb557;
+  --straight: #246d92;
+  --curved: #137965;
+}
+* { box-sizing: border-box; }
+body { margin: 0; line-height: 1.5; }
+main { max-width: 1100px; padding: 28px 24px 36px; margin: auto; }
+header { margin-bottom: 20px; }
+.course { color: #1a655c; font-size: .84rem; font-weight: 750; }
+h1 { margin: 3px 0 6px; font-size: clamp(1.8rem, 4.15vw, 3rem); line-height: 1.12; letter-spacing: -.035em; }
+h2 { font-size: 1.1rem; margin: 0; }
+p { margin: 0; }
+.subtitle { color: var(--muted); }
+.experiment { background: #fff; border: 1px solid var(--border); border-radius: 18px; box-shadow: 0 6px 26px #213c4d0a; overflow: hidden; }
+.toolbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap;
+  padding: 15px 20px; border-bottom: 1px solid var(--border);
+}
+.setting { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+.setting label { font-weight: 700; }
+.setting input { width: min(30vw, 156px); margin: 0; }
+.setting output { min-width: 3.1em; font-weight: 750; font-variant-numeric: tabular-nums; }
+.actions { display: flex; gap: 8px; }
+button, input, select { font: inherit; }
+select { min-height: 40px; padding: 5px 8px; border: 1px solid #a9bfcb; border-radius: 8px; color: var(--ink); background: #fff; }
+[hidden] { display: none !important; }
+input[type="range"] { accent-color: #246d92; min-height: 28px; cursor: pointer; }
+button {
+  min-height: 42px; padding: 7px 16px; border-radius: 8px; border: 1px solid #a9bfcb;
+  background: white; color: #21475a; font-weight: 750; cursor: pointer;
+}
+button.primary { color: white; background: #155b79; border-color: #155b79; min-width: 104px; }
+button:hover { background: #eaf2f6; }
+button.primary:hover { background: #114762; }
+button:disabled { color: #617480; background: #eff4f6; border-color: #d5e2e8; cursor: default; }
+:focus-visible { outline: 3px solid #986009; outline-offset: 3px; }
+.run-info {
+  padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; gap: 6px 16px;
+  flex-wrap: wrap; background: #143246; color: #f3f9fc; font-size: .88rem;
+}
+.clock { color: #d0e5ef; font-variant-numeric: tabular-nums; }
+.clock strong { color: white; }
+.comparison { display: grid; grid-template-columns: 1fr 1fr; }
+.track { padding: 17px 20px 18px; min-width: 0; }
+.track + .track { border-left: 1px solid var(--border); }
+.track h2 { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.track-id {
+  display: inline-grid; place-items: center; width: 29px; height: 29px; color: #fff;
+  border-radius: 7px; background: var(--track-colour); font-size: .9rem;
+}
+.track-a { --track-colour: var(--straight); }
+.track-b { --track-colour: var(--curved); }
+canvas {
+  width: 100%; height: auto; display: block; background: #f2f7fa;
+  border: 1px solid #dfeaf0; border-radius: 10px;
+}
+.readings { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin: 11px 0 14px; }
+.readings div { background: #f1f5f7; border-radius: 7px; padding: 7px 10px; }
+dt { font-size: .81rem; color: var(--muted); }
+dd { margin: 0; font-weight: 750; }
+.readings dd { font-size: clamp(1rem, 2.45vw, 1.36rem); font-variant-numeric: tabular-nums; }
+.unit { font-size: .78em; font-weight: 600; }
+.energy-bar {
+  display: flex; height: 16px; overflow: hidden; border-radius: 5px; background: var(--potential);
+  box-shadow: inset 0 0 0 1px #48300526;
+}
+.kinetic-fill { width: 0; background: var(--kinetic); }
+.energies {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; margin: 7px 0 0;
+  font-variant-numeric: tabular-nums;
+}
+.energies dt { display: flex; align-items: center; gap: 5px; }
+.swatch { flex: none; width: 8px; height: 8px; border-radius: 2px; }
+.swatch.ke { background: var(--kinetic); }
+.swatch.gpe { background: var(--potential); }
+.total { grid-column: 1 / -1; display: flex; align-items: baseline; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 5px; }
+.timeline { padding: 8px 20px 11px; background: #f4f8fa; border-top: 1px solid var(--border); }
+#height-panel { border-top: 0; border-bottom: 1px solid var(--border); }
+.timeline label { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: .83rem; font-weight: 700; }
+.timeline output { color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 600; }
+.timeline input { width: 100%; display: block; margin: 2px 0 0; }
+.explanation { margin-top: 13px; padding: 12px 16px; background: #fff; border: 1px solid var(--border); border-radius: 11px; }
+summary { cursor: pointer; font-weight: 750; color: #21475a; }
+.explanation p { margin-top: 8px; color: var(--muted); }
+.equation { color: var(--ink); font-weight: 700; }
+@media (max-width: 620px) {
+  main { padding: 19px 11px 24px; }
+  header { margin: 0 3px 14px; }
+  .toolbar { padding: 11px; gap: 9px; }
+  .run-info, .timeline { padding-left: 11px; padding-right: 11px; }
+  .track { padding: 11px 7px; }
+  .track h2 { gap: 5px; font-size: .87rem; }
+  .track-id { width: 23px; height: 23px; font-size: .8rem; }
+  .readings { grid-template-columns: 1fr; gap: 4px; margin: 6px 0 9px; }
+  .readings div { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 1px 4px; padding: 4px 6px; }
+  .readings dd { font-size: .88rem; }
+  dt { font-size: .73rem; }
+  .energies { gap: 4px; }
+  .energies dd { font-size: .82rem; }
+  .energy-bar { height: 11px; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="course">F.4 Physics · Work and Energy</p>
+    <h1>Conservation of Mechanical Energy</h1>
+    <p class="subtitle">Two identical trolleys start from rest on smooth tracks. Compare their speeds after the same vertical drop.</p>
+  </header>
+  <section class="experiment" aria-label="Compare the two tracks">
+    <div class="toolbar">
+      <div class="setting">
+        <label for="view">View</label>
+        <select id="view">
+          <option value="motion">Play the motion</option>
+          <option value="height">Compare at the same height</option>
+        </select>
+      </div>
+      <div class="setting">
+        <label for="height">Release height</label>
+        <input type="range" id="height" min="2" max="6" step="1" value="4">
+        <output id="height-value" for="height">4 m</output>
+      </div>
+      <div class="actions" id="motion-controls">
+        <button type="button" id="play" class="primary">Release</button>
+        <button type="button" id="reset" disabled>Reset</button>
+      </div>
+    </div>
+    <div class="run-info">
+      <p id="height-status" hidden>The dashed line marks the same height on both tracks.</p>
+      <p id="status" role="status">Ready to release both trolleys.</p>
+      <p class="clock" id="clock">Model time <strong id="time">0.00 s</strong> · Playback at ¼ speed</p>
+    </div>
+    <div class="timeline" id="height-panel" hidden>
+      <label for="compare-height">Height above finish <output id="compare-value" for="compare-height">2.0 m</output></label>
+      <input type="range" id="compare-height" min="0" max="4" step="0.1" value="2">
+    </div>
+    <div class="comparison">
+      <section class="track track-a" aria-labelledby="title-a">
+        <h2 id="title-a"><span class="track-id">A</span> Straight track</h2>
+        <canvas id="scene-a" width="800" height="440" role="img" aria-label="A trolley on a straight slope from the release height to the finish line."></canvas>
+        <dl class="readings">
+          <div><dt>Speed</dt><dd><span id="speed-a">0.00</span> <span class="unit">m s⁻¹</span></dd></div>
+          <div><dt id="reading-label-a">Arrival time</dt><dd id="reading-a">—</dd></div>
+        </dl>
+        <div class="energy-bar" aria-hidden="true"><div class="kinetic-fill" id="bar-a"></div></div>
+        <dl class="energies">
+          <div><dt><span class="swatch ke"></span>Kinetic</dt><dd id="ke-a"></dd></div>
+          <div><dt><span class="swatch gpe"></span>Grav. potential</dt><dd id="gpe-a"></dd></div>
+          <div class="total"><dt>Mechanical energy</dt><dd id="total-a"></dd></div>
+        </dl>
+      </section>
+      <section class="track track-b" aria-labelledby="title-b">
+        <h2 id="title-b"><span class="track-id">B</span> Curved track</h2>
+        <canvas id="scene-b" width="800" height="440" role="img" aria-label="A trolley on a slope that starts steeper and becomes gentler towards the finish line."></canvas>
+        <dl class="readings">
+          <div><dt>Speed</dt><dd><span id="speed-b">0.00</span> <span class="unit">m s⁻¹</span></dd></div>
+          <div><dt id="reading-label-b">Arrival time</dt><dd id="reading-b">—</dd></div>
+        </dl>
+        <div class="energy-bar" aria-hidden="true"><div class="kinetic-fill" id="bar-b"></div></div>
+        <dl class="energies">
+          <div><dt><span class="swatch ke"></span>Kinetic</dt><dd id="ke-b"></dd></div>
+          <div><dt><span class="swatch gpe"></span>Grav. potential</dt><dd id="gpe-b"></dd></div>
+          <div class="total"><dt>Mechanical energy</dt><dd id="total-b"></dd></div>
+        </dl>
+      </section>
+    </div>
+    <div class="timeline" id="timeline-panel">
+      <label for="timeline">Replay a moment <output id="timeline-value" for="timeline">0.00 s</output></label>
+      <input type="range" id="timeline" min="0" max="0" step="any" value="0" disabled>
+    </div>
+  </section>
+  <details class="explanation">
+    <summary>Explain the result</summary>
+    <p>At the same height, both trolleys have fallen through the same vertical distance <i>h</i>. On the smooth tracks, the loss of gravitational potential energy equals the gain in kinetic energy, so both trolleys have the same speed at that height.</p>
+    <p>The trolleys can pass that height at different times. The comparison view shows each trolley at the moment it passes the selected height.</p>
+    <p class="equation"><i>mgh</i> = ½<i>mv</i><sup>2</sup> &nbsp;→&nbsp; <i>v</i> = √(2<i>gh</i>)</p>
+    <p>Each trolley has a mass of 1.0 kg. The model uses <i>g</i> = 9.81 m s⁻², takes the finish as zero gravitational potential energy and ignores wheel rotation and air resistance. Each display freezes the trolley’s readings at the finish.</p>
+  </details>
+</main>
+<script>
+'use strict';
+
+const gravity = 9.81;
+const mass = 1;
+const runLength = 9;
+const curvature = 0.7;
+const samples = 800;
+const get = id => document.getElementById(id);
+const tracks = [
+  { id: 'a', bend: 0, colour: '#246d92' },
+  { id: 'b', bend: curvature, colour: '#137965' }
+];
+
+function fractionDropped(q, bend) {
+  return q + bend * Math.sin(Math.PI * q) / Math.PI;
+}
+
+function slope(q, bend, height) {
+  return height * (1 + bend * Math.cos(Math.PI * q)) / runLength;
+}
+
+function makeModel(bend, height) {
+  const times = [0];
+  // Integrate ds/v with q = r², which removes the singularity at release from rest.
+  for (let i = 0; i < samples; i++) {
+    const r = (i + 0.5) / samples;
+    const q = r * r;
+    const dsDr = 2 * r * runLength * Math.hypot(1, slope(q, bend, height));
+    const speed = Math.sqrt(2 * gravity * height * fractionDropped(q, bend));
+    times.push(times[i] + dsDr / speed / samples);
+  }
+  return { bend, height, times, arrival: times[samples] };
+}
+
+function motionAt(model, time) {
+  if (time <= 0) return { q: 0, speed: 0, arrival: false };
+  if (time >= model.arrival) {
+    return { q: 1, speed: Math.sqrt(2 * gravity * model.height), arrival: true };
+  }
+
+  let lower = 0;
+  let upper = samples;
+  while (upper - lower > 1) {
+    const mid = Math.floor((lower + upper) / 2);
+    if (model.times[mid] <= time) lower = mid;
+    else upper = mid;
+  }
+  const fraction = (time - model.times[lower]) / (model.times[upper] - model.times[lower]);
+  const r = (lower + fraction) / samples;
+  const q = r * r;
+  return { q, speed: Math.sqrt(2 * gravity * model.height * fractionDropped(q, model.bend)), arrival: false };
+}
+
+function motionAtHeight(model, height) {
+  const fraction = (model.height - height) / model.height;
+  let q = fraction;
+  // The drop increases monotonically, so there is one position at each height.
+  if (model.bend !== 0 && fraction > 0 && fraction < 1) {
+    let low = 0;
+    let high = 1;
+    for (let i = 0; i < 40; i++) {
+      q = (low + high) / 2;
+      if (fractionDropped(q, model.bend) < fraction) low = q;
+      else high = q;
+    }
+  }
+  return { q, speed: Math.sqrt(2 * gravity * (model.height - height)), arrival: height === 0 };
+}
+
+const origin = { x: 77, y: 183 };
+const pixelsPerMetre = 25;
+const finishX = origin.x + runLength * pixelsPerMetre;
+
+function position(q, model) {
+  return {
+    x: origin.x + q * runLength * pixelsPerMetre,
+    y: origin.y - model.height * (1 - fractionDropped(q, model.bend)) * pixelsPerMetre
+  };
+}
+
+function drawTrack(track, motion, guideHeight) {
+  const { context: ctx, model, colour } = track;
+  ctx.setTransform(2, 0, 0, 2, 0, 0);
+  ctx.clearRect(0, 0, 400, 220);
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = '#dce8ee';
+  ctx.beginPath();
+  for (let metres = 0; metres <= 5; metres++) {
+    const y = origin.y - metres * pixelsPerMetre;
+    ctx.moveTo(18, y);
+    ctx.lineTo(382, y);
+  }
+  ctx.stroke();
+
+  const start = position(0, model);
+  ctx.strokeStyle = '#7e9dab';
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  ctx.moveTo(31, start.y);
+  ctx.lineTo(start.x, start.y);
+  ctx.moveTo(18, origin.y);
+  ctx.lineTo(382, origin.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.strokeStyle = '#7e9dab';
+  ctx.beginPath();
+  ctx.moveTo(31, start.y);
+  ctx.lineTo(31, origin.y);
+  for (const y of [start.y, origin.y]) {
+    ctx.moveTo(26, y);
+    ctx.lineTo(36, y);
+  }
+  ctx.stroke();
+  ctx.font = '700 17px system-ui';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#345469';
+  ctx.textAlign = 'left';
+  ctx.fillText(model.height + ' m', 39, (start.y + origin.y) / 2);
+
+  ctx.lineWidth = 3.5;
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = colour;
+  ctx.beginPath();
+  ctx.moveTo(start.x, start.y);
+  for (let i = 1; i <= 90; i++) {
+    const point = position(i / 90, model);
+    ctx.lineTo(point.x, point.y);
+  }
+  ctx.stroke();
+
+  if (guideHeight !== null) {
+    const y = origin.y - guideHeight * pixelsPerMetre;
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#865318';
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    ctx.moveTo(18, y);
+    ctx.lineTo(382, y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.strokeStyle = colour;
+  }
+
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(finishX, origin.y - 37);
+  ctx.lineTo(finishX, origin.y + 4);
+  ctx.stroke();
+  for (let row = 0; row < 2; row++) {
+    for (let col = 0; col < 4; col++) {
+      ctx.fillStyle = (col + row) % 2 ? '#fff' : colour;
+      ctx.fillRect(finishX + col * 4, origin.y - 37 + row * 4, 4, 4);
+    }
+  }
+  ctx.fillStyle = '#345469';
+  ctx.font = '650 16px system-ui';
+  ctx.fillText('Finish', finishX - 19, 205);
+
+  const point = position(motion.q, model);
+  if (guideHeight !== null) {
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(point.x, point.y, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+  ctx.save();
+  ctx.translate(point.x, point.y);
+  ctx.rotate(Math.atan(slope(motion.q, model.bend, model.height)));
+  ctx.fillStyle = colour;
+  ctx.beginPath();
+  ctx.roundRect(-14, -17, 28, 12, 4);
+  ctx.fill();
+  ctx.fillStyle = '#163447';
+  for (const x of [-8, 8]) {
+    ctx.beginPath();
+    ctx.arc(x, -3.7, 3.7, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+for (const track of tracks) {
+  track.context = get('scene-' + track.id).getContext('2d');
+  for (const field of ['speed', 'reading', 'reading-label', 'bar', 'ke', 'gpe', 'total']) {
+    track[field] = get(field + '-' + track.id);
+  }
+}
+
+const heightInput = get('height');
+const view = get('view');
+const compareInput = get('compare-height');
+const timeline = get('timeline');
+const playButton = get('play');
+const resetButton = get('reset');
+const status = get('status');
+let endTime = 0;
+let time = 0;
+let furthestTime = 0;
+let playing = false;
+let frameId;
+let lastFrame;
+
+const seconds = value => value.toFixed(2) + ' s';
+const metres = value => value.toFixed(1) + ' m';
+const joules = value => value.toFixed(1) + ' J';
+
+function render() {
+  const guideHeight = view.value === 'height' ? Number(compareInput.value) : null;
+  for (const track of tracks) {
+    const model = track.model;
+    const motion = guideHeight === null ? motionAt(model, time) : motionAtHeight(model, guideHeight);
+    const total = mass * gravity * model.height;
+    const kinetic = 0.5 * mass * motion.speed ** 2;
+    const potential = Math.max(0, total - kinetic);
+    drawTrack(track, motion, guideHeight);
+    track.speed.textContent = motion.speed.toFixed(2);
+    track.reading.textContent = guideHeight === null
+      ? (motion.arrival ? seconds(model.arrival) : '—')
+      : metres(guideHeight);
+    track.ke.textContent = joules(kinetic);
+    track.gpe.textContent = joules(potential);
+    track.total.textContent = joules(total);
+    track.bar.style.width = Math.min(100, 100 * kinetic / total) + '%';
+  }
+  get('compare-value').textContent = metres(Number(compareInput.value));
+  get('time').textContent = seconds(time);
+  get('timeline-value').textContent = seconds(time);
+  timeline.max = furthestTime;
+  timeline.value = time;
+  timeline.setAttribute('aria-valuetext', seconds(time));
+  timeline.disabled = furthestTime === 0;
+  resetButton.disabled = furthestTime === 0 && !playing;
+  playButton.textContent = playing ? 'Pause' : time >= endTime ? 'Replay' : time > 0 ? 'Resume' : 'Release';
+}
+
+function stop() {
+  playing = false;
+  cancelAnimationFrame(frameId);
+}
+
+function syncView() {
+  const compare = view.value === 'height';
+  for (const id of ['motion-controls', 'timeline-panel', 'clock', 'status']) get(id).hidden = compare;
+  for (const id of ['height-panel', 'height-status']) get(id).hidden = !compare;
+  for (const track of tracks) track['reading-label'].textContent = compare ? 'Height above finish' : 'Arrival time';
+}
+
+function reset() {
+  stop();
+  const height = Number(heightInput.value);
+  get('height-value').textContent = height + ' m';
+  heightInput.setAttribute('aria-valuetext', height + ' metres');
+  compareInput.max = height;
+  compareInput.value = height / 2;
+  for (const track of tracks) track.model = makeModel(track.bend, height);
+  endTime = Math.max(...tracks.map(track => track.model.arrival));
+  time = 0;
+  furthestTime = 0;
+  status.textContent = 'Ready to release both trolleys.';
+  render();
+}
+
+function frame(timestamp) {
+  const elapsed = lastFrame === undefined ? 0 : Math.min(0.08, (timestamp - lastFrame) / 1000);
+  lastFrame = timestamp;
+  time = Math.min(endTime, time + elapsed / 4);
+  furthestTime = Math.max(time, furthestTime);
+  if (time >= endTime) {
+    playing = false;
+    status.textContent = 'Both trolleys have arrived. Compare their speeds and arrival times.';
+  }
+  render();
+  if (playing) frameId = requestAnimationFrame(frame);
+}
+
+heightInput.addEventListener('input', reset);
+compareInput.addEventListener('input', render);
+view.addEventListener('change', () => {
+  if (playing) {
+    stop();
+    status.textContent = 'Paused.';
+  }
+  syncView();
+  render();
+});
+resetButton.addEventListener('click', reset);
+playButton.addEventListener('click', () => {
+  if (playing) {
+    stop();
+    status.textContent = 'Paused.';
+  } else {
+    if (time >= endTime) time = 0;
+    playing = true;
+    lastFrame = undefined;
+    status.textContent = 'Trolleys released.';
+    frameId = requestAnimationFrame(frame);
+  }
+  render();
+});
+timeline.addEventListener('input', () => {
+  stop();
+  time = Math.min(furthestTime, Number(timeline.value));
+  status.textContent = time >= endTime ? 'Both trolleys have arrived.' : 'Paused.';
+  render();
+});
+
+syncView();
+reset();
+</script>
+</body>
+</html>
