@@ -124,7 +124,11 @@
       <svg id="apparatus" viewBox="0 0 700 560" role="img" aria-labelledby="apparatusTitle apparatusDesc">
         <title id="apparatusTitle">Photoelectric cell</title>
         <desc id="apparatusDesc">A continuous beam of light falls on the target in a photocell. An ammeter shows the current and a variable power supply sets the collector voltage.</desc>
-        <path d="M150 150 C150 90 220 80 350 80 C480 80 550 90 550 150 V350 C550 410 480 420 350 420 C220 420 150 410 150 350 Z" fill="none" stroke="#667992" stroke-width="3"/>
+        <defs>
+          <path id="tubeOutline" d="M150 150 C150 90 220 80 350 80 C480 80 550 90 550 150 V350 C550 410 480 420 350 420 C220 420 150 410 150 350 Z"/>
+          <clipPath id="tubeInterior"><use href="#tubeOutline"/></clipPath>
+        </defs>
+        <use href="#tubeOutline" fill="none" stroke="#667992" stroke-width="3"/>
         <path d="M200 80 H290" stroke="#101b30" stroke-width="8"/>
         <g transform="translate(300 48) rotate(118)"><rect width="58" height="30" y="-15" fill="#74869e" rx="4"/><path d="M58 -12 L78 -20 V20 L58 12 Z" fill="#a8b8cc"/></g>
         <rect x="180" y="180" width="20" height="140" fill="#9db0c8" stroke="#dbe7f7" stroke-width="2"/>
@@ -133,22 +137,22 @@
         <text x="510" y="345" text-anchor="middle" fill="#dbe7f7" font-size="15">Collector</text>
         <text id="targetPolarity" x="190" y="165" text-anchor="middle" fill="#f8d683" font-size="22"></text>
         <text id="collectorPolarity" x="510" y="165" text-anchor="middle" fill="#f8d683" font-size="22"></text>
-        <path id="lightBeam" class="observation-only" d="M267 105 L200 188 L200 312 Z" fill="#9e87ff" opacity="0.3"/>
+        <path id="lightBeam" class="observation-only" d="M267 105 L200 226 L200 274 Z" fill="#9e87ff" opacity="0.3"/>
         <path d="M190 320 V480 H315 M385 480 H510 V430 M510 370 V320" fill="none" stroke="#98adc8" stroke-width="3"/>
         <circle cx="510" cy="400" r="30" fill="#101b30" stroke="#98adc8" stroke-width="3"/>
         <text x="510" y="405" text-anchor="middle" fill="#eef5ff" font-size="20">A</text>
         <circle cx="350" cy="480" r="35" fill="#101b30" stroke="#98adc8" stroke-width="3"/>
         <path d="M330 499 L368 461 M360 460 L370 459 L369 469" fill="none" stroke="#98adc8" stroke-width="2"/>
         <text id="batteryVoltage" x="350" y="540" text-anchor="middle" fill="#eef5ff" font-size="17">0.00 V</text>
-        <g id="photons" class="particle-only" aria-hidden="true"></g><g id="electrons" class="particle-only" aria-hidden="true"></g>
+        <g id="photons" class="particle-only" aria-hidden="true"></g><g id="electrons" class="particle-only" aria-hidden="true" clip-path="url(#tubeInterior)"></g>
         <rect x="300" y="357" width="150" height="66" rx="8" fill="#1f3351"/>
         <text x="375" y="379" text-anchor="middle" fill="#bccde2" font-size="12">Steady photocurrent</text>
-        <text id="meter" x="375" y="405" text-anchor="middle" fill="#7bd9ff" font-size="20" font-weight="700">50.0 units</text>
+        <text id="meter" x="375" y="405" text-anchor="middle" fill="#7bd9ff" font-size="20" font-weight="700">—</text>
       </svg>
       <p id="observationStatus" class="observation-only" role="status"></p>
       <p id="status" class="particle-only" role="status"></p>
       <figcaption class="observation-only">Continuous light illuminates the target. The ammeter shows the steady current.</figcaption>
-      <figcaption class="particle-only">Coloured dots: photons · Blue dots: electrons · Animation slowed down.</figcaption>
+      <figcaption class="particle-only">Coloured dots represent incident photons. Blue dots represent electrons.</figcaption>
     </figure>
   </main>
     <section id="energyPanel" class="supplement particle-only" aria-labelledby="energyHeading" hidden>
@@ -159,7 +163,7 @@
           <div class="readout"><dt>Maximum initial KE</dt><dd id="maxKE">0.82 eV</dd></div>
           <div class="readout"><dt>Stopping potential, Vₛ</dt><dd id="stoppingPotential">0.82 V</dd></div>
         </dl>
-        <p class="energy-equation">hf = Φ + K<sub>max</sub> &nbsp; · &nbsp; eVₛ = K<sub>max</sub></p>
+        <p id="energyEquation" class="energy-equation">hf = Φ + K<sub>max</sub> &nbsp; · &nbsp; eVₛ = K<sub>max</sub></p>
         <button id="setStopping">Set V = −Vₛ</button>
         <details>
           <summary>Frequency and threshold values</summary>
@@ -169,6 +173,11 @@
             <div class="readout"><dt>Threshold wavelength, λ₀</dt><dd id="thresholdWavelength"></dd></div>
           </dl>
           <p class="note">Work functions are model values; actual surfaces may differ. The energy equations apply when emission occurs.</p>
+        </details>
+        <details>
+          <summary>Extension · Why does the current fall near the threshold?</summary>
+          <p>Some electrons in the metal need more energy to escape than others. The work function is the minimum energy needed. If each photon carries only a little more than this minimum, fewer of the electrons that absorb photons can escape.</p>
+          <p>Set the collector voltage high enough to reach saturation. Keep the light intensity fixed and increase the wavelength towards the threshold. More photons arrive each second because each carries less energy. Close to the threshold, the chance that a photon releases an electron falls fast enough for the saturation current to decrease.</p>
         </details>
     </section>
     <section id="graphPanel" class="supplement particle-only" aria-labelledby="graphHeading" hidden>
@@ -185,24 +194,26 @@
         </svg>
         <div>
         <p class="note">Blue curve: current settings. Dot: selected voltage. Current is in arbitrary units.</p>
-        <p><strong>Saturation current:</strong> <span id="saturationCurrent">50.0 units</span></p>
+        <p><strong>Saturation current</strong> <span id="saturationCurrent">—</span></p>
+        <p id="saturationRange" class="note" hidden>Full collection requires more than +8 V at these settings.</p>
         <div class="buttons"><button id="pin">Keep reference</button><button id="clearReference" disabled>Clear reference</button></div>
         <p id="referenceLabel">No reference curve saved.</p>
-        <p class="note">The graph uses an idealised energy distribution. Real experimental curves can have different shapes.</p>
+        <p class="note">This is a model curve. Its exact shape depends on the photocell.</p>
         </div>
         </div>
     </section>
   <footer class="model-note observation-only">
     <details><summary>How to use this simulation</summary>
-      <ul class="guide"><li>Keep the collector voltage positive. Change the wavelength at fixed light intensity and observe the current.</li><li>Change light intensity at a fixed wavelength.</li><li>Vary the collector voltage. When does the current fall to zero?</li></ul>
+      <ul class="guide"><li>Keep the light settings fixed. Increase the collector voltage from zero until the current levels off.</li><li>Keep the light intensity fixed and vary the wavelength. How does the current approach zero?</li><li>Try a negative collector voltage. When does the current fall to zero?</li></ul>
       <p>Current is shown in arbitrary units. Light intensity is the power per unit area reaching the target, expressed as a percentage of the model maximum. V = potential of collector − potential of target. UV and IR use false colours. Apparatus dimensions are not to scale.</p>
     </details>
   </footer>
   <footer class="model-note particle-only">
     <details><summary>Teaching guide and model assumptions</summary>
-      <ul class="guide"><li>At fixed intensity, compare the saturation currents at two wavelengths using a reference curve. Then increase the wavelength past the threshold.</li><li>Show energy and apply a retarding voltage. Compare the stopping potentials at different wavelengths.</li></ul>
-      <p>Light intensity is the power per unit area reaching the target, expressed as a percentage of the model maximum. At fixed intensity and illuminated area, a longer wavelength means less energy per photon and more photons arriving each second. The model assumes a constant fraction of incident photons produces photoelectrons whenever the photon energy is sufficient. That fraction can vary with wavelength in a real photocell.</p>
-      <p>This one-dimensional model uses uniform initial electron energies from 0 to K<sub>max</sub>, emission towards the collector and a uniform electric field. All emitted electrons are collected at positive voltage. Electrons with positive initial energy are also collected at zero voltage. The displayed current is a steady model value. V = potential of collector − potential of target. Particle sizes and apparatus dimensions are not to scale. UV and IR use false colours. Uses c ≈ 3.00 × 10⁸ m s⁻¹ and hc ≈ 1240 eV nm.</p>
+      <ul class="guide"><li>At fixed light intensity, change the wavelength towards the threshold and compare the saturation currents.</li><li>At fixed light settings, increase the collector voltage and watch how many emitted electrons reach the collector.</li><li>Show energy and apply a retarding voltage to find the stopping potential.</li></ul>
+      <p>Light intensity is the power per unit area reaching the target. The simulation uses the same illustrative energy scale of 0.06 eV for every metal to set how gradually the emission probability falls near the threshold. The width of the drop in a measured curve depends on the photocathode and its surface condition.</p>
+      <p>Electrons leave the target at different angles with a uniform spread of initial kinetic energies from zero to K<sub>max</sub>. A higher positive collector voltage accelerates them across the gap, so they drift less sideways and more reach the collector. The current levels off when all emitted electrons are collected.</p>
+      <p>V is the collector potential minus the target potential. The model uses a uniform electric field and shows a steady current. Animation is slowed down. Particle sizes and apparatus dimensions are not to scale. UV and IR use false colours. The model uses c ≈ 3.00 × 10⁸ m s⁻¹ and hc ≈ 1240 eV nm.</p>
     </details>
   </footer>
   <script>
@@ -210,8 +221,13 @@
     const HC = 1240;
     const C = 3e8;
     const REFERENCE_WAVELENGTH = 400; // Keep the original current scale at 400 nm.
-    const GRAPH_MAX_CURRENT = 160; // Maximum is 155 at 620 nm and 100% intensity for metal A.
+    const GRAPH_MAX_CURRENT = 160; // Upper bound for the selectable metals and wavelengths.
+    const EMISSION_ENERGY_SCALE = 0.06; // eV. Illustrative width of the drop near threshold.
     const START_X = 200, COLLECTOR_X = 500, GAP = COLLECTOR_X - START_X;
+    const COLLECTOR_TOP = 180, COLLECTOR_BOTTOM = 320;
+    const ILLUMINATED_TOP = 226, ILLUMINATED_BOTTOM = 274;
+    const MAX_EMISSION_ANGLE = 18 * Math.PI / 180;
+    const MAX_COLLECTOR_VOLTAGE = 8;
     const SPEED_SCALE = 120; // px s^-1 per sqrt(eV); animation scale only.
     const EPSILON = 1e-10;
     const byId = id => document.getElementById(id);
@@ -222,13 +238,38 @@
     let photons = [], electrons = [], photonBudget = 0;
     let previousTime = null;
 
+    // Solve the flight across the gap for the least voltage that puts an
+    // electron on the collector. That voltage scales with initial KE (in eV).
+    function collectionVoltagePerEV(angle, startY) {
+      const distanceToEdge = angle >= 0 ? COLLECTOR_BOTTOM - startY : startY - COLLECTOR_TOP;
+      const driftRatio = GAP * Math.abs(Math.tan(angle)) / distanceToEdge;
+      const axialEnergyFraction = Math.cos(angle) ** 2;
+      // At the turning point the sideways drift is twice the drift at 0 V.
+      if (driftRatio <= 0.5) return -axialEnergyFraction;
+      return 4 * axialEnergyFraction * driftRatio * (driftRatio - 1);
+    }
+    const FULL_COLLECTION_FACTOR = collectionVoltagePerEV(MAX_EMISSION_ANGLE, ILLUMINATED_BOTTOM);
+    const collectionLimits = [];
+    // Sample position and angle once. The current integrates energy exactly
+    // over the uniform distribution from zero to Kmax for each sample.
+    for (let i = 0; i < 61; i++) {
+      const angle = MAX_EMISSION_ANGLE * (2 * (i + 0.5) / 61 - 1);
+      for (let j = 0; j < 21; j++) {
+        const y = ILLUMINATED_TOP + (ILLUMINATED_BOTTOM - ILLUMINATED_TOP) * (j + 0.5) / 21;
+        collectionLimits.push(collectionVoltagePerEV(angle, y));
+      }
+    }
+
     // Pure model functions shared by the readouts, graph and operating point.
     function calculateModel(settings) {
       const photonEnergy = HC / settings.wavelength;
       const availableEnergy = photonEnergy - settings.workFunction;
-      const canEmit = availableEnergy >= -EPSILON;
-      const maxKE = Math.max(0, availableEnergy);
-      return { photonEnergy, canEmit, maxKE, stoppingPotential: canEmit ? maxKE : null,
+      const canEmit = availableEnergy > EPSILON;
+      const maxKE = canEmit ? availableEnergy : 0;
+      return { photonEnergy, canEmit, maxKE, atThreshold: Math.abs(availableEnergy) <= EPSILON,
+        stoppingPotential: canEmit ? maxKE : null,
+        // Quadratic onset in excess photon energy, approaching a constant well above threshold.
+        emissionProbability: -Math.expm1(-((maxKE / EMISSION_ENERGY_SCALE) ** 2)),
         frequency: C / (settings.wavelength * 1e-9),
         thresholdFrequency: settings.workFunction * C / (HC * 1e-9),
         thresholdWavelength: HC / settings.workFunction };
@@ -238,33 +279,53 @@
       return settings.intensity * settings.wavelength / REFERENCE_WAVELENGTH;
     }
     function saturationCurrent(settings, model) {
-      return model.canEmit ? relativePhotonRate(settings) : 0;
+      return relativePhotonRate(settings) * model.emissionProbability;
+    }
+    function collectionFraction(voltage, maxKE) {
+      const voltagePerEV = voltage / maxKE;
+      if (voltagePerEV >= FULL_COLLECTION_FACTOR) return 1;
+      let sum = 0;
+      for (const limit of collectionLimits) {
+        // The minimum voltage for this direction and starting point is limit * KE.
+        if (voltagePerEV >= 0) {
+          sum += limit <= 0 ? 1 : Math.min(1, voltagePerEV / limit);
+        } else if (voltagePerEV > limit) {
+          sum += 1 - voltagePerEV / limit;
+        }
+      }
+      return sum / collectionLimits.length;
     }
     function currentAtVoltage(settings, voltage, model = calculateModel(settings)) {
+      if (!model.canEmit || voltage <= -model.stoppingPotential + EPSILON) return 0;
       const saturation = saturationCurrent(settings, model);
-      if (model.maxKE <= EPSILON) return voltage > 0 ? saturation : 0;
-      const fraction = voltage >= 0 ? 1 : Math.max(0, 1 + voltage / model.maxKE);
-      return saturation * fraction;
+      return saturation * collectionFraction(voltage, model.maxKE);
     }
     function electronAcceleration(voltage) {
       // 1/2 v^2 = (SPEED_SCALE^2 / 2) K; across GAP, energy changes by V eV.
       return SPEED_SCALE * SPEED_SCALE * voltage / (2 * GAP);
     }
-    function advanceElectron(electron, dt, voltage) {
-      const acceleration = electronAcceleration(voltage);
+    function advanceElectron(electron, dt, acceleration) {
       return { ...electron, x: electron.x + electron.vx * dt + 0.5 * acceleration * dt * dt,
-        vx: electron.vx + acceleration * dt };
+        y: electron.y + electron.vy * dt, vx: electron.vx + acceleration * dt };
     }
-    function reachesCollector(electron, dt, voltage) {
-      if (electron.initialKE + voltage <= EPSILON) return false;
-      const acceleration = electronAcceleration(voltage);
-      const turnTime = acceleration < 0 ? Math.max(0, -electron.vx / acceleration) : dt;
-      const forwardTime = Math.min(dt, turnTime);
-      return electron.x + electron.vx * forwardTime + 0.5 * acceleration * forwardTime * forwardTime >= COLLECTOR_X;
+    function reachesCollector(electron, dt, acceleration) {
+      const distance = COLLECTOR_X - electron.x;
+      if (distance <= 0) return false;
+      const speedSquaredAtCollector = electron.vx ** 2 + 2 * acceleration * distance;
+      if (speedSquaredAtCollector <= 0) return false;
+      const speedSum = electron.vx + Math.sqrt(speedSquaredAtCollector);
+      if (speedSum <= 0) return false;
+      const crossingTime = 2 * distance / speedSum;
+      if (crossingTime > dt) return false;
+      const crossingY = electron.y + electron.vy * crossingTime;
+      return crossingY >= COLLECTOR_TOP && crossingY <= COLLECTOR_BOTTOM;
     }
     function formatValue(value) {
       if (value === 0) return '0.00';
       return Math.abs(value) < 0.01 ? value.toPrecision(3) : value.toFixed(2);
+    }
+    function formatCurrent(value) {
+      return value > 0 && value < 0.1 ? '<0.1' : value.toFixed(1);
     }
     function lightColour(wavelength) {
       if (wavelength < 380) return '#bdc9da';
@@ -290,7 +351,7 @@
       byId('particleView').textContent = view === 'particles' ? 'Particle model' : 'Reveal particle model';
       const materialNames = ['Sodium (Na)', 'Calcium (Ca)', 'Zinc (Zn)', 'Copper (Cu)', 'Platinum (Pt)', 'Model metal A'];
       Array.from(byId('material').options).forEach((option, i) => { option.textContent = view === 'particles' ? `${materialNames[i]} · ${Number(option.value).toFixed(2)} eV` : materialNames[i]; });
-      byId('apparatusDesc').textContent = view === 'particles' ? 'Light falls on the target. Emitted electrons travel towards the collector. Negative collector voltage retards them.' : 'A continuous beam of light falls on the target in a photocell. An ammeter shows the current and a variable power supply sets the collector voltage.';
+      byId('apparatusDesc').textContent = view === 'particles' ? 'Light falls on the target. Emitted electrons leave at different angles. A more positive collector voltage helps more electrons reach the collector.' : 'A continuous beam of light falls on the target in a photocell. An ammeter shows the current and a variable power supply sets the collector voltage.';
       byId('lightBeam').setAttribute('fill', lightColour(state.wavelength));
       byId('lightBeam').setAttribute('opacity', state.intensity === 0 ? 0 : 0.12 + state.intensity / 100 * 0.48);
       byId('wavelengthValue').textContent = `${state.wavelength} nm`;
@@ -307,21 +368,25 @@
       byId('frequency').textContent = `${(model.frequency / 1e14).toFixed(2)} × 10¹⁴ Hz`;
       byId('thresholdFrequency').textContent = `${(model.thresholdFrequency / 1e14).toFixed(2)} × 10¹⁴ Hz`;
       byId('thresholdWavelength').textContent = `${model.thresholdWavelength.toFixed(1)} nm`;
-      byId('maxKE').textContent = model.canEmit ? `${formatValue(model.maxKE)} eV` : '—';
+      byId('maxKE').textContent = model.canEmit || model.atThreshold ? `${formatValue(model.maxKE)} eV` : '—';
       byId('stoppingPotential').textContent = model.canEmit ? `${formatValue(model.stoppingPotential)} V` : '—';
+      byId('energyEquation').hidden = !model.canEmit;
       byId('setStopping').disabled = !model.canEmit;
       const current = currentAtVoltage(state, state.voltage, model);
       const saturation = saturationCurrent(state, model);
-      byId('meter').textContent = `${current.toFixed(1)} units`;
-      byId('saturationCurrent').textContent = `${saturation.toFixed(1)} units`;
-      byId('observationStatus').textContent = state.intensity === 0 ? 'Light off. No current detected.' : current <= EPSILON ? 'No current detected.' : 'Current detected.';
+      const voltageForFullCollection = model.maxKE * FULL_COLLECTION_FACTOR;
+      byId('meter').textContent = `${formatCurrent(current)} units`;
+      byId('saturationCurrent').textContent = `${formatCurrent(saturation)} units`;
+      byId('saturationRange').hidden = saturation === 0 || voltageForFullCollection <= MAX_COLLECTOR_VOLTAGE;
+      byId('observationStatus').textContent = state.intensity === 0 ? 'Light off. No current detected.' : current === 0 ? 'No current detected.' : 'Current detected.';
       let status;
-      if (state.intensity === 0) status = 'Light off: no photons arrive and no electrons are emitted.';
-      else if (!model.canEmit) status = 'No emission: photon energy is below the work function.';
-      else if (model.maxKE <= EPSILON) status = 'At threshold: electrons have zero initial kinetic energy. A positive collector voltage is needed to collect them.';
-      else if (current <= EPSILON) status = 'Electrons are emitted, but the retarding voltage stops all of them from reaching the collector.';
-      else status = 'Electrons are emitted and reach the collector.';
-      if (atStopping && state.intensity > 0 && model.maxKE > EPSILON) status += ' Exact stopping voltage selected.';
+      if (state.intensity === 0) status = 'The light is off. No electrons are emitted.';
+      else if (model.atThreshold) status = 'At the threshold wavelength, the photocurrent is zero in this model.';
+      else if (!model.canEmit) status = 'No electrons are emitted because the photon energy is below the work function.';
+      else if (atStopping) status = 'At the stopping potential, no electrons reach the collector.';
+      else if (current === 0) status = 'The retarding voltage prevents the emitted electrons from reaching the collector.';
+      else if (state.voltage >= voltageForFullCollection) status = 'All emitted electrons are collected. The current has reached saturation.';
+      else status = 'Only some of the emitted electrons reach the collector.';
       byId('status').textContent = status;
       byId('pause').textContent = running ? 'Pause animation' : 'Play animation';
       drawGraph(model, current, saturation);
@@ -329,7 +394,8 @@
     function drawGraph(model, current, saturation) {
       const refModel = reference ? calculateModel(reference) : null;
       const minV = -Math.max(1.2, model.maxKE * 1.25, refModel ? refModel.maxKE * 1.25 : 0, -state.voltage * 1.1);
-      const maxV = Math.max(2, state.voltage * 1.15);
+      const largestKE = Math.max(model.maxKE, refModel?.maxKE ?? 0);
+      const maxV = Math.min(MAX_COLLECTOR_VOLTAGE, Math.max(2, state.voltage * 1.15, largestKE * FULL_COLLECTION_FACTOR * 1.15));
       const x = v => 42 + (v - minV) * 260 / (maxV - minV);
       const y = value => 192 - value * 148 / GRAPH_MAX_CURRENT;
       let axes = '';
@@ -343,12 +409,13 @@
       axes += `<line x1="42" y1="192" x2="302" y2="192" stroke="#52657d"/><line x1="${x(0)}" y1="30" x2="${x(0)}" y2="192" stroke="#99a9bd"/><text x="${x(0)}" y="29" text-anchor="middle" font-size="10" fill="#52657d">V = 0</text><text x="12" y="16" font-size="11" fill="#52657d">I / units</text><text x="175" y="236" text-anchor="middle" font-size="11" fill="#52657d">Collector voltage / V</text>`;
       byId('graphAxes').innerHTML = axes;
       const pathFor = (settings, m) => {
-        // At the exact threshold the chosen distribution collapses to zero initial energy.
-        if (m.canEmit && m.maxKE <= EPSILON && settings.intensity > 0) {
-          const plateauY = y(currentAtVoltage(settings, maxV, m));
-          return `M ${x(minV)} ${y(0)} L ${x(0)} ${y(0)} M ${x(0)} ${plateauY} L ${x(maxV)} ${plateauY}`;
-        }
-        const points = [minV, ...(m.canEmit && -m.maxKE > minV ? [-m.maxKE] : []), 0, maxV];
+        if (!m.canEmit || settings.intensity === 0) return `M ${x(minV)} ${y(0)} L ${x(maxV)} ${y(0)}`;
+        const riseEnd = Math.min(maxV, m.maxKE * FULL_COLLECTION_FACTOR);
+        const points = [minV, state.voltage, maxV];
+        for (let i = 0; i <= 24; i++) points.push(-m.stoppingPotential * (1 - i / 24));
+        // Sample more closely near zero, where the accelerating curve rises most steeply.
+        for (let i = 1; i <= 36; i++) points.push(riseEnd * (i / 36) ** 2);
+        points.sort((a, b) => a - b);
         return points.map((v, i) => `${i ? 'L' : 'M'} ${x(v)} ${y(currentAtVoltage(settings, v, m))}`).join(' ');
       };
       byId('curve').setAttribute('d', pathFor(state, model));
@@ -356,9 +423,9 @@
       byId('operatingPoint').setAttribute('cx', x(state.voltage));
       byId('operatingPoint').setAttribute('cy', y(current));
       byId('stoppingMarker').innerHTML = model.canEmit && state.intensity > 0 ? `<line x1="${x(-model.maxKE)}" y1="192" x2="${x(-model.maxKE)}" y2="174" stroke="#245cc0"/><text x="${x(-model.maxKE)}" y="168" text-anchor="middle" font-size="10" fill="#245cc0">−Vₛ = ${formatValue(-model.maxKE)} V</text>` : '';
-      byId('graphDescription').textContent = `Current settings: wavelength ${state.wavelength} nanometres, light intensity ${state.intensity} percent. Current at ${formatValue(state.voltage)} volts is ${current.toFixed(1)} arbitrary units. Saturation current is ${saturation.toFixed(1)} arbitrary units. ${model.canEmit ? `Stopping potential ${formatValue(model.maxKE)} volts.` : 'No photoelectric emission.'}`;
+      byId('graphDescription').textContent = `Wavelength ${state.wavelength} nanometres, light intensity ${state.intensity} percent. Current at ${formatValue(state.voltage)} volts is ${formatCurrent(current)} units. Saturation current is ${formatCurrent(saturation)} units. ${model.canEmit ? `Stopping potential ${formatValue(model.stoppingPotential)} volts.` : 'No photoelectric emission.'}`;
       byId('clearReference').disabled = !reference;
-      byId('referenceLabel').textContent = reference ? `Dashed reference: ${reference.materialName}, ${reference.wavelength} nm, ${reference.intensity}% intensity. Saturation current: ${saturationCurrent(reference, refModel).toFixed(1)} units.` : 'No reference curve saved.';
+      byId('referenceLabel').textContent = reference ? `Dashed reference at ${reference.wavelength} nm, ${reference.materialName}, ${reference.intensity}% intensity. Saturation current ${formatCurrent(saturationCurrent(reference, refModel))} units.` : 'No reference curve saved.';
     }
     function circle(x, y, radius, colour) {
       const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -370,19 +437,21 @@
       previousTime = timestamp;
       if (running && view === 'particles') {
         const model = calculateModel(state);
+        const acceleration = electronAcceleration(state.voltage);
         photonBudget += dt * 8 * relativePhotonRate(state) / 100;
         while (photonBudget >= 1) {
-          photons.push({ x: 267, y: 105, targetY: 188 + Math.random() * 124 });
+          const targetY = ILLUMINATED_TOP + Math.random() * (ILLUMINATED_BOTTOM - ILLUMINATED_TOP);
+          photons.push({ x: 267, y: 105, targetY });
           photonBudget--;
         }
         const photonDots = [];
         photons = photons.filter(p => {
           const dx = START_X - p.x, dy = p.targetY - p.y, distance = Math.hypot(dx, dy);
           if (distance <= 280 * dt) {
-            if (model.canEmit && (model.maxKE > EPSILON || state.voltage > 0)) {
-              const energyFraction = Math.random();
-              const initialKE = model.maxKE * energyFraction;
-              electrons.push({ x: START_X, y: p.targetY, vx: SPEED_SCALE * Math.sqrt(initialKE), initialKE });
+            if (Math.random() < model.emissionProbability) {
+              const speed = SPEED_SCALE * Math.sqrt(model.maxKE * (1 - Math.random()));
+              const angle = MAX_EMISSION_ANGLE * (2 * Math.random() - 1);
+              electrons.push({ x: START_X, y: p.targetY, vx: speed * Math.cos(angle), vy: speed * Math.sin(angle) });
             }
             return false;
           }
@@ -392,9 +461,10 @@
         });
         byId('photons').replaceChildren(...photonDots);
         const electronDots = [];
-        electrons = electrons.filter(e => !reachesCollector(e, dt, state.voltage)).map(e => advanceElectron(e, dt, state.voltage)).filter(e => {
+        electrons = electrons.filter(e => !reachesCollector(e, dt, acceleration)).map(e => advanceElectron(e, dt, acceleration)).filter(e => {
           if (e.x <= START_X && e.vx < 0) return false;
-          electronDots.push(circle(Math.min(e.x, COLLECTOR_X), e.y, 4, '#7bd9ff'));
+          if (e.x >= 550 || e.y <= 80 || e.y >= 420) return false;
+          electronDots.push(circle(e.x, e.y, 4, '#7bd9ff'));
           return true;
         });
         byId('electrons').replaceChildren(...electronDots);
@@ -403,7 +473,7 @@
     }
     function changeVoltage(value) {
       if (!Number.isFinite(value)) return;
-      state.voltage = Math.max(-12, Math.min(8, value));
+      state.voltage = Math.max(-12, Math.min(MAX_COLLECTOR_VOLTAGE, value));
       clearParticles(); update();
     }
     byId('wavelength').addEventListener('input', event => { state.wavelength = Number(event.target.value); clearParticles(); update(); });
