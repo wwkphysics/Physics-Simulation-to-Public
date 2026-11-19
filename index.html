@@ -189,7 +189,9 @@
 
     .book-code {
       display: grid;
-      flex: 0 0 48px;
+      flex: none;
+      padding-inline: 10px;
+      white-space: nowrap;
       height: 48px;
       place-items: center;
       border-radius: 14px;
@@ -271,26 +273,22 @@
       * { scroll-behavior: auto !important; transition: none !important; }
     }
   </style>
+<link rel="stylesheet" href="hub-header.css">
 </head>
 <body>
-  <header class="hero">
-    <div class="hero-inner">
-      <div class="topbar">
-        <div class="brand"><span class="brand-mark">φ</span><span>WWK Physics</span></div>
-        <div class="author">Created by WWK</div>
-      </div>
-      <p class="eyebrow">HKDSE learning resources</p>
-      <h1>Interactive Physics Simulations</h1>
-      <p class="intro">Explore physics concepts through focused, interactive models, organised according to Oxford Physics at Work for HKDSE.</p>
-      <div class="summary" aria-label="Collection summary">
-        <span>12 simulations</span>
-        <span>Core and elective topics</span>
-        <span>Works in a web browser</span>
-      </div>
-    </div>
-  </header>
+<header class="hub-header">
+  <div class="hub-inner">
+    <strong>Mr Wong WK's Physics Learning Hub</strong>
+    <nav aria-label="Main navigation">
+      <a href="index.html" aria-current="page">Interactive Simulations</a>
+      <a href="past-paper.html">Past Paper Solutions</a>
+    </nav>
+  </div>
+</header>
 
   <main>
+    <h1 style="color:#102a43;font-size:clamp(2rem,5vw,3rem)">Interactive Simulations</h1>
+    <p>Explore 12 simulations organised by book and topic.</p>
     <section class="part" aria-labelledby="core-heading">
       <div class="part-heading">
         <h2 id="core-heading">Compulsory Part</h2>

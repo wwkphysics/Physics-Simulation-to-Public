@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en-GB">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mr Wong WK's Physics Learning Hub</title>
+<style>
+* { box-sizing:border-box }
+body { margin:0; background:#f5f5ef; color:#153735; font:1rem/1.5 system-ui,sans-serif }
+header { background:#123c3a; color:white; padding:clamp(1.5rem,5vw,4rem) max(5vw,calc((100vw - 56rem)/2)) }
+h1,h2 { font-family:Georgia,serif; line-height:1.15 }
+h1 { font-size:clamp(1.9rem,5vw,3.3rem); margin:.3rem 0 1rem }
+h1 span { display:inline-block }
+header a { color:#d0f0df }
+main { width:min(90%,56rem); margin:2rem auto }
+article { background:white; padding:clamp(1rem,4vw,2rem); border:1px solid #d2dcd5; border-radius:1rem }
+h2 { font-size:2rem; margin:0 }
+.controls, form { display:flex; flex-wrap:wrap; gap:1rem; align-items:end }
+label { display:grid; gap:.3rem; flex:1 1 12rem; font-weight:600 }
+select,input,button { font:inherit; min-height:2.8rem; padding:.5rem .75rem; border:1px solid #899e99; border-radius:.4rem; width:100% }
+button { background:#185651; color:white; width:auto; cursor:pointer }
+#answer { background:#edf5ef; padding:1rem; border-left:4px solid #368070; font-size:1.2rem }
+small { color:#536860 }
+</style>
+<link rel="stylesheet" href="hub-header.css">
+<header class="hub-header">
+  <div class="hub-inner">
+    <strong>Mr Wong WK's Physics Learning Hub</strong>
+    <nav aria-label="Main navigation">
+      <a href="index.html">Interactive Simulations</a>
+      <a href="past-paper.html" aria-current="page">Past Paper Solutions</a>
+    </nav>
+  </div>
+</header>
+<main><article>
+  <h2>Past Paper MC (in testing)</h2>
+  <p>Choose the year, paper and question number to check your answer.</p>
+  <div class="controls">
+    <label>Year<select id="year"><option value="">Select a year</option></select></label>
+    <label>Paper<select id="paper" disabled><option value="">Select a year first</option></select></label>
+    <label>Question number<select id="question" disabled><option value="">Select a paper first</option></select></label>
+  </div>
+  <p id="answer" hidden aria-live="polite"></p>
+  <p><small>Source: 2012–2026 HKDSE Physics combined answer workbook. Questions marked “Pending review” are recorded as deleted in the workbook.</small></p>
+</article></main>
+<script src="mc-answers.js"></script>
+<script>
+const byId = id => document.getElementById(id);
+const year = byId('year'), question = byId('question');
+const paper = byId('paper');
+const papers = ['Paper 1A', 'Paper 2 MC'];
+for (const value of [...new Set(records.map(row => row.year))].sort((a,b) => b-a)) year.add(new Option(value,value));
+let questions = [];
+const selectedRow = () => question.value === '' ? undefined : questions[Number(question.value)];
+function showAnswer() {
+  const row = selectedRow();
+  byId('answer').hidden = !row;
+  byId('answer').textContent = row ? (row.answer ? 'Answer: ' + row.answer : 'Pending review — recorded as deleted.') : '';
+}
+year.onchange = () => {
+  paper.replaceChildren(new Option(year.value ? 'Select a paper' : 'Select a year first',''));
+  paper.disabled = !year.value;
+  if (year.value) for (const name of papers) paper.add(new Option(name,name));
+  paper.onchange();
+};
+paper.onchange = () => {
+  questions = records.filter(row => row.year === Number(year.value) && row.paper === paper.value)
+    .sort((a,b) => a.section.localeCompare(b.section) || a.question-b.question);
+  question.replaceChildren(new Option(paper.value ? 'Select a question' : 'Select a paper first',''));
+  question.disabled = !paper.value;
+  questions.forEach((row,index) => {
+    const section = row.section ? 'Section ' + row.section + ' · ' : '';
+    question.add(new Option(section + 'Q' + row.question + (row.answer ? '' : ' (pending review)'),index));
+  });
+  showAnswer();
+};
+question.onchange = showAnswer;
+</script>
+<style>[hidden] { display:none !important }</style>
+</html>
