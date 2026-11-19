@@ -38,7 +38,8 @@
     output { font-variant-numeric: tabular-nums; font-weight: 700; color: #245cc0; }
     select, input[type=number] { width: 100%; padding: 9px; border: 1px solid #a7b8cc; border-radius: 6px; background: white; color: #172a43; font: inherit; }
     input[type=range] { width: 100%; height: 28px; margin: 2px 0; accent-color: #2f6fdf; cursor: pointer; }
-    .scale { display: flex; justify-content: space-between; font-size: .75rem; color: #52657d; }
+    .scale { display: flex; gap: 10px; justify-content: space-between; font-size: .75rem; color: #52657d; }
+    .scale span:last-child { text-align: right; }
     .spectrum { height: 10px; border-radius: 5px; background: linear-gradient(to right, #9ba5b5 0%, #9ba5b5 37.3%, #8b5cf6 40%, #3b82f6 46%, #10b981 55%, #eab308 64%, #ef4444 73%, #7f1d1d 80%, #7f1d1d 100%); }
     .buttons { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
     button { border: 1px solid #9fb3cc; background: white; border-radius: 6px; color: #183b68; padding: 8px 11px; font: 600 .8rem system-ui, sans-serif; cursor: pointer; min-height: 36px; }
@@ -47,7 +48,8 @@
     button.primary { background: #245cc0; color: white; border-color: #245cc0; }
     :focus-visible { outline: 3px solid #d48c05; outline-offset: 3px; }
     .voltage-entry { display: flex; gap: 8px; align-items: center; }
-    .voltage-entry input { max-width: 130px; }
+    .voltage-entry input { min-width: 0; max-width: 220px; font-variant-numeric: tabular-nums; }
+    #voltageValue { text-align: right; }
     .guide { margin: 12px 0 0; padding-left: 19px; font-size: .84rem; }
     .guide li { margin: 7px 0; }
     #referenceLabel { min-height: 2.5em; font-size: .75rem; color: #7b4d12; }
@@ -77,8 +79,8 @@
   <header>
     <span class="note">WWK Physics · Atomic World</span>
     <h1>Photoelectric Effect Simulator</h1>
-    <p class="subtitle observation-only">Investigate how light and collector voltage affect the current in a photocell.</p>
-    <p class="subtitle particle-only">See how wavelength, light intensity and collector voltage affect photoelectrons.</p>
+    <p class="subtitle observation-only">Investigate how light and applied voltage affect the current in a photocell.</p>
+    <p class="subtitle particle-only">See how wavelength, light intensity and applied voltage affect photoelectrons.</p>
     <nav class="view-switch" aria-label="Teaching view">
       <button id="observationView" aria-pressed="true">Observation</button>
       <button id="particleView" aria-pressed="false">Reveal particle model</button>
@@ -109,10 +111,10 @@
         <input id="intensity" type="range" min="0" max="100" step="1" value="50">
       </div>
       <div class="field">
-        <div class="label-row"><label for="voltage">Collector voltage, V</label><output id="voltageValue" for="voltage voltageNumber">0.00 V</output></div>
+        <div class="label-row"><label for="voltage">Applied voltage, V</label><output id="voltageValue" for="voltage voltageNumber">0.00 V</output></div>
         <input id="voltage" type="range" min="-12" max="8" step="0.01" value="0">
-        <div class="scale"><span>−12 V · retarding</span><span>+8 V · accelerating</span></div>
-        <div class="voltage-entry"><label class="sr-only" for="voltageNumber">Enter collector voltage in volts</label><input id="voltageNumber" type="number" min="-12" max="8" step="0.01" value="0.00"><span>V</span></div>
+        <div class="scale"><span>−12 V · Backward voltage (decelerating)</span><span>+8 V · Forward voltage (accelerating)</span></div>
+        <div class="voltage-entry"><label class="sr-only" for="voltageNumber">Enter applied voltage in volts</label><input id="voltageNumber" type="number" min="-12" max="8" step="any" value="0.00"><span>V</span></div>
       </div>
       <div class="buttons"><button id="pause" class="primary particle-only">Pause animation</button><button id="reset">Reset</button></div>
       <div class="reveal-tools particle-only" aria-label="Reveal explanations">
@@ -123,7 +125,7 @@
     <figure class="apparatus">
       <svg id="apparatus" viewBox="0 0 700 560" role="img" aria-labelledby="apparatusTitle apparatusDesc">
         <title id="apparatusTitle">Photoelectric cell</title>
-        <desc id="apparatusDesc">A continuous beam of light falls on the target in a photocell. An ammeter shows the current and a variable power supply sets the collector voltage.</desc>
+        <desc id="apparatusDesc">A continuous beam of light falls on the target in a photocell. An ammeter shows the current and a variable power supply sets the applied voltage.</desc>
         <defs>
           <path id="tubeOutline" d="M150 150 C150 90 220 80 350 80 C480 80 550 90 550 150 V350 C550 410 480 420 350 420 C220 420 150 410 150 350 Z"/>
           <clipPath id="tubeInterior"><use href="#tubeOutline"/></clipPath>
@@ -177,14 +179,14 @@
         <details>
           <summary>Extension · Why does the current fall near the threshold?</summary>
           <p>Some electrons in the metal need more energy to escape than others. The work function is the minimum energy needed. If each photon carries only a little more than this minimum, fewer of the electrons that absorb photons can escape.</p>
-          <p>Set the collector voltage high enough to reach saturation. Keep the light intensity fixed and increase the wavelength towards the threshold. More photons arrive each second because each carries less energy. Close to the threshold, the chance that a photon releases an electron falls fast enough for the saturation current to decrease.</p>
+          <p>Set the forward voltage high enough to reach saturation. Keep the light intensity fixed and increase the wavelength towards the threshold. More photons arrive each second because each carries less energy. Close to the threshold, the chance that a photon releases an electron falls fast enough for the saturation current to decrease.</p>
         </details>
     </section>
     <section id="graphPanel" class="supplement particle-only" aria-labelledby="graphHeading" hidden>
         <h2 id="graphHeading">Current–voltage graph</h2>
         <div class="graph-layout">
         <svg id="graph" class="graph" viewBox="0 0 320 245" role="img" aria-labelledby="graphTitle graphDescription">
-          <title id="graphTitle">Photocurrent against collector voltage</title>
+          <title id="graphTitle">Photocurrent against applied voltage</title>
           <desc id="graphDescription"></desc>
           <g id="graphAxes"></g>
           <path id="referenceCurve" fill="none" stroke="#aa6810" stroke-width="2" stroke-dasharray="5 4"/>
@@ -204,15 +206,15 @@
     </section>
   <footer class="model-note observation-only">
     <details><summary>How to use this simulation</summary>
-      <ul class="guide"><li>Keep the light settings fixed. Increase the collector voltage from zero until the current levels off.</li><li>Keep the light intensity fixed and vary the wavelength. How does the current approach zero?</li><li>Try a negative collector voltage. When does the current fall to zero?</li></ul>
+      <ul class="guide"><li>Keep the light settings fixed. Increase the forward voltage from zero until the current levels off.</li><li>Keep the light intensity fixed and vary the wavelength. How does the current approach zero?</li><li>Try a backward voltage. When does the current fall to zero?</li></ul>
       <p>Current is shown in arbitrary units. Light intensity is the power per unit area reaching the target, expressed as a percentage of the model maximum. V = potential of collector − potential of target. UV and IR use false colours. Apparatus dimensions are not to scale.</p>
     </details>
   </footer>
   <footer class="model-note particle-only">
     <details><summary>Teaching guide and model assumptions</summary>
-      <ul class="guide"><li>At fixed light intensity, change the wavelength towards the threshold and compare the saturation currents.</li><li>At fixed light settings, increase the collector voltage and watch how many emitted electrons reach the collector.</li><li>Show energy and apply a retarding voltage to find the stopping potential.</li></ul>
+      <ul class="guide"><li>At fixed light intensity, change the wavelength towards the threshold and compare the saturation currents.</li><li>At fixed light settings, increase the forward voltage and watch how many emitted electrons reach the collector.</li><li>Show energy and apply a backward voltage to find the stopping potential.</li></ul>
       <p>Light intensity is the power per unit area reaching the target. The simulation uses the same illustrative energy scale of 0.06 eV for every metal to set how gradually the emission probability falls near the threshold. The width of the drop in a measured curve depends on the photocathode and its surface condition.</p>
-      <p>Electrons leave the target at different angles with a uniform spread of initial kinetic energies from zero to K<sub>max</sub>. A higher positive collector voltage accelerates them across the gap, so they drift less sideways and more reach the collector. The current levels off when all emitted electrons are collected.</p>
+      <p>Electrons leave the target at different angles with a uniform spread of initial kinetic energies from zero to K<sub>max</sub>. A higher forward voltage accelerates them across the gap, so they drift less sideways and more reach the collector. The current levels off when all emitted electrons are collected.</p>
       <p>V is the collector potential minus the target potential. The model uses a uniform electric field and shows a steady current. Animation is slowed down. Particle sizes and apparatus dimensions are not to scale. UV and IR use false colours. The model uses c ≈ 3.00 × 10⁸ m s⁻¹ and hc ≈ 1240 eV nm.</p>
     </details>
   </footer>
@@ -324,8 +326,23 @@
       if (value === 0) return '0.00';
       return Math.abs(value) < 0.01 ? value.toPrecision(3) : value.toFixed(2);
     }
+    function stoppingDigits(settings, model) {
+      // Keep the displayed stopping setting reproducible even at full intensity.
+      const fullLight = { ...settings, intensity: 100 };
+      for (let digits = 2; digits < 8; digits++) {
+        const voltage = -Number(model.maxKE.toFixed(digits));
+        if (model.canEmit && voltage === 0) continue;
+        if (formatCurrent(currentAtVoltage(fullLight, voltage, model)) === '0.0') return digits;
+      }
+      return 8;
+    }
+    function formatVoltage(value, digits = 2) {
+      const rounded = value.toFixed(digits);
+      const approximate = Math.abs(value - Number(rounded)) > EPSILON;
+      return `${approximate ? '≈ ' : ''}${rounded} V`;
+    }
     function formatCurrent(value) {
-      return value > 0 && value < 0.1 ? '<0.1' : value.toFixed(1);
+      return value.toFixed(1);
     }
     function lightColour(wavelength) {
       if (wavelength < 380) return '#bdc9da';
@@ -351,16 +368,23 @@
       byId('particleView').textContent = view === 'particles' ? 'Particle model' : 'Reveal particle model';
       const materialNames = ['Sodium (Na)', 'Calcium (Ca)', 'Zinc (Zn)', 'Copper (Cu)', 'Platinum (Pt)', 'Model metal A'];
       Array.from(byId('material').options).forEach((option, i) => { option.textContent = view === 'particles' ? `${materialNames[i]} · ${Number(option.value).toFixed(2)} eV` : materialNames[i]; });
-      byId('apparatusDesc').textContent = view === 'particles' ? 'Light falls on the target. Emitted electrons leave at different angles. A more positive collector voltage helps more electrons reach the collector.' : 'A continuous beam of light falls on the target in a photocell. An ammeter shows the current and a variable power supply sets the collector voltage.';
+      byId('apparatusDesc').textContent = view === 'particles' ? 'Light falls on the target. Emitted electrons leave at different angles. A higher forward voltage helps more electrons reach the collector.' : 'A continuous beam of light falls on the target in a photocell. An ammeter shows the current and a variable power supply sets the applied voltage.';
       byId('lightBeam').setAttribute('fill', lightColour(state.wavelength));
       byId('lightBeam').setAttribute('opacity', state.intensity === 0 ? 0 : 0.12 + state.intensity / 100 * 0.48);
       byId('wavelengthValue').textContent = `${state.wavelength} nm`;
       byId('intensityValue').textContent = `${state.intensity}%`;
       const atStopping = model.canEmit && Math.abs(state.voltage + model.maxKE) < EPSILON;
-      byId('voltageValue').textContent = `${formatValue(state.voltage)} V${atStopping && view === 'particles' ? ' (−Vₛ)' : ''}`;
-      byId('voltage').value = state.voltage;
-      byId('voltageNumber').value = String(state.voltage);
-      byId('batteryVoltage').textContent = `${formatValue(state.voltage)} V`;
+      const digits = stoppingDigits(state, model);
+      const shownVoltage = atStopping ? state.voltage.toFixed(digits) : String(state.voltage);
+      const voltage = atStopping ? formatVoltage(state.voltage, digits)
+        : (Math.abs(state.voltage - Number(state.voltage.toFixed(2))) < EPSILON
+          ? formatVoltage(state.voltage) : shownVoltage + ' V');
+      byId('voltageValue').textContent = voltage + (atStopping && view === 'particles' ? ' (−Vₛ)' : '');
+      const slider = byId('voltage');
+      slider.value = state.voltage;
+      slider.setAttribute('aria-valuetext', formatVoltage(slider.valueAsNumber));
+      byId('voltageNumber').value = shownVoltage;
+      byId('batteryVoltage').textContent = voltage;
       byId('targetPolarity').textContent = state.voltage === 0 ? '' : state.voltage > 0 ? '−' : '+';
       byId('collectorPolarity').textContent = state.voltage === 0 ? '' : state.voltage > 0 ? '+' : '−';
       byId('photonEnergy').textContent = `${model.photonEnergy.toFixed(2)} eV`;
@@ -369,7 +393,7 @@
       byId('thresholdFrequency').textContent = `${(model.thresholdFrequency / 1e14).toFixed(2)} × 10¹⁴ Hz`;
       byId('thresholdWavelength').textContent = `${model.thresholdWavelength.toFixed(1)} nm`;
       byId('maxKE').textContent = model.canEmit || model.atThreshold ? `${formatValue(model.maxKE)} eV` : '—';
-      byId('stoppingPotential').textContent = model.canEmit ? `${formatValue(model.stoppingPotential)} V` : '—';
+      byId('stoppingPotential').textContent = model.canEmit ? formatVoltage(model.stoppingPotential, digits) : '—';
       byId('energyEquation').hidden = !model.canEmit;
       byId('setStopping').disabled = !model.canEmit;
       const current = currentAtVoltage(state, state.voltage, model);
@@ -378,20 +402,21 @@
       byId('meter').textContent = `${formatCurrent(current)} units`;
       byId('saturationCurrent').textContent = `${formatCurrent(saturation)} units`;
       byId('saturationRange').hidden = saturation === 0 || voltageForFullCollection <= MAX_COLLECTOR_VOLTAGE;
-      byId('observationStatus').textContent = state.intensity === 0 ? 'Light off. No current detected.' : current === 0 ? 'No current detected.' : 'Current detected.';
+      byId('observationStatus').textContent = state.intensity === 0 ? 'Light off. No current detected.' : formatCurrent(current) === '0.0' ? 'The ammeter reads 0.0 units.' : 'Current detected.';
       let status;
       if (state.intensity === 0) status = 'The light is off. No electrons are emitted.';
       else if (model.atThreshold) status = 'At the threshold wavelength, the photocurrent is zero in this model.';
       else if (!model.canEmit) status = 'No electrons are emitted because the photon energy is below the work function.';
       else if (atStopping) status = 'At the stopping potential, no electrons reach the collector.';
-      else if (current === 0) status = 'The retarding voltage prevents the emitted electrons from reaching the collector.';
+      else if (current === 0) status = 'The backward voltage prevents the emitted electrons from reaching the collector.';
+      else if (formatCurrent(current) === '0.0') status = 'The current is too small to register at this precision.';
       else if (state.voltage >= voltageForFullCollection) status = 'All emitted electrons are collected. The current has reached saturation.';
       else status = 'Only some of the emitted electrons reach the collector.';
       byId('status').textContent = status;
       byId('pause').textContent = running ? 'Pause animation' : 'Play animation';
-      drawGraph(model, current, saturation);
+      drawGraph(model, current, saturation, digits, voltage);
     }
-    function drawGraph(model, current, saturation) {
+    function drawGraph(model, current, saturation, digits, voltage) {
       const refModel = reference ? calculateModel(reference) : null;
       const minV = -Math.max(1.2, model.maxKE * 1.25, refModel ? refModel.maxKE * 1.25 : 0, -state.voltage * 1.1);
       const largestKE = Math.max(model.maxKE, refModel?.maxKE ?? 0);
@@ -406,7 +431,7 @@
         const v = minV + i * (maxV - minV) / 4;
         axes += `<text x="${x(v)}" y="211" text-anchor="middle" font-size="10" fill="#52657d">${v.toFixed(1)}</text>`;
       }
-      axes += `<line x1="42" y1="192" x2="302" y2="192" stroke="#52657d"/><line x1="${x(0)}" y1="30" x2="${x(0)}" y2="192" stroke="#99a9bd"/><text x="${x(0)}" y="29" text-anchor="middle" font-size="10" fill="#52657d">V = 0</text><text x="12" y="16" font-size="11" fill="#52657d">I / units</text><text x="175" y="236" text-anchor="middle" font-size="11" fill="#52657d">Collector voltage / V</text>`;
+      axes += `<line x1="42" y1="192" x2="302" y2="192" stroke="#52657d"/><line x1="${x(0)}" y1="30" x2="${x(0)}" y2="192" stroke="#99a9bd"/><text x="${x(0)}" y="29" text-anchor="middle" font-size="10" fill="#52657d">V = 0</text><text x="12" y="16" font-size="11" fill="#52657d">I / units</text><text x="175" y="236" text-anchor="middle" font-size="11" fill="#52657d">Applied voltage / V</text>`;
       byId('graphAxes').innerHTML = axes;
       const pathFor = (settings, m) => {
         if (!m.canEmit || settings.intensity === 0) return `M ${x(minV)} ${y(0)} L ${x(maxV)} ${y(0)}`;
@@ -422,8 +447,12 @@
       byId('referenceCurve').setAttribute('d', reference ? pathFor(reference, refModel) : '');
       byId('operatingPoint').setAttribute('cx', x(state.voltage));
       byId('operatingPoint').setAttribute('cy', y(current));
-      byId('stoppingMarker').innerHTML = model.canEmit && state.intensity > 0 ? `<line x1="${x(-model.maxKE)}" y1="192" x2="${x(-model.maxKE)}" y2="174" stroke="#245cc0"/><text x="${x(-model.maxKE)}" y="168" text-anchor="middle" font-size="10" fill="#245cc0">−Vₛ = ${formatValue(-model.maxKE)} V</text>` : '';
-      byId('graphDescription').textContent = `Wavelength ${state.wavelength} nanometres, light intensity ${state.intensity} percent. Current at ${formatValue(state.voltage)} volts is ${formatCurrent(current)} units. Saturation current is ${formatCurrent(saturation)} units. ${model.canEmit ? `Stopping potential ${formatValue(model.stoppingPotential)} volts.` : 'No photoelectric emission.'}`;
+      const stoppingX = x(-model.maxKE);
+      const stoppingAnchor = stoppingX < 90 ? 'start' : stoppingX > 245 ? 'end' : 'middle';
+      const stoppingVoltage = formatVoltage(-model.maxKE, digits);
+      const stoppingLabel = stoppingVoltage.startsWith('≈') ? stoppingVoltage : '= ' + stoppingVoltage;
+      byId('stoppingMarker').innerHTML = model.canEmit && state.intensity > 0 ? `<line x1="${stoppingX}" y1="192" x2="${stoppingX}" y2="174" stroke="#245cc0"/><text x="${stoppingX}" y="168" text-anchor="${stoppingAnchor}" font-size="10" fill="#245cc0">−Vₛ ${stoppingLabel}</text>` : '';
+      byId('graphDescription').textContent = `Wavelength ${state.wavelength} nanometres, light intensity ${state.intensity} percent. Current at ${voltage} is ${formatCurrent(current)} units. Saturation current is ${formatCurrent(saturation)} units. ${model.canEmit ? `Stopping potential ${formatVoltage(model.stoppingPotential, digits)}.` : 'No photoelectric emission.'}`;
       byId('clearReference').disabled = !reference;
       byId('referenceLabel').textContent = reference ? `Dashed reference at ${reference.wavelength} nm, ${reference.materialName}, ${reference.intensity}% intensity. Saturation current ${formatCurrent(saturationCurrent(reference, refModel))} units.` : 'No reference curve saved.';
     }
