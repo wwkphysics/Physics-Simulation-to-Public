@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Young’s Double-Slit Experiment | WWK Physics</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0d1725;color:#edf5ff;font:16px/1.5 system-ui,sans-serif}main{max-width:1200px;margin:auto;padding:clamp(16px,3vw,40px)}header,.heading,.field,.reading{display:flex;align-items:center;justify-content:space-between;gap:12px}header{border-bottom:1px solid #36485c;padding-bottom:20px;margin-bottom:20px;flex-wrap:wrap}h1{font-size:clamp(24px,3vw,36px);letter-spacing:-.04em;line-height:1.15;margin:0}h2{font-size:17px;margin:0}i{font-family:Georgia,serif}.formula{background:#1d3944;color:#b7efea;padding:6px 13px;border-radius:7px;font-size:19px}.layout{display:grid;grid-template-columns:minmax(255px,.78fr) minmax(0,1.7fr);gap:16px;align-items:start}article,aside{background:#182638;border:1px solid #34465b;border-radius:13px;padding:clamp(16px,2vw,24px)}.views{display:grid;gap:16px}.heading{flex-wrap:wrap;margin-bottom:14px}.muted,small{color:#b4c3d4;font-size:14px}.control{margin:18px 0}.field{font-size:15px;flex-wrap:wrap}output,.reading strong{color:#ace6df;font-variant-numeric:tabular-nums}input{width:100%;margin:7px 0 0;accent-color:#9fe1d8;cursor:pointer}.reading{border-top:1px solid #34465b;padding-top:16px;align-items:baseline;flex-wrap:wrap}.reading strong{font-size:22px}p{margin:12px 0 0}svg{display:block;width:100%;height:auto}svg text{font:16px system-ui,sans-serif;fill:#dce6ef}canvas{display:block;width:100%;height:94px;background:#000}.ruler{height:30px;position:relative;border-top:1px solid #708295;display:flex;justify-content:space-between}.ruler span{position:absolute;transform:translateX(-50%);font-size:13px;color:#c4d2e1;padding-top:6px}.ruler span:before{content:'';position:absolute;top:0;left:50%;height:5px;border-left:1px solid #97a8b8}.ruler span:first-child{transform:none}.ruler span:first-child:before{left:0}.ruler span:last-child{transform:translateX(-100%)}.ruler span:last-child:before{left:100%}.measure{height:30px;position:relative}.bracket{position:absolute;left:50%;bottom:3px;height:7px;border:solid #bce9e2;border-width:1px 1px 0}.bracket i{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);color:#bce9e2}.diagram{background:#102031;border-radius:8px}.note{font-size:14px;color:#bccbd9}input:focus-visible{outline:2px solid #ffe499;outline-offset:3px}@media(max-width:720px){.layout{grid-template-columns:1fr}.control{margin:12px 0}}[hidden]{display:none!important}
+</style></head><body><main>
+<header><h1>Young’s Double-Slit Experiment</h1><div class="formula" aria-label="Fringe spacing equals wavelength times screen distance divided by slit separation"><i>Δy</i> = <i>λD</i> / <i>a</i></div></header>
+<div class="layout"><aside><h2>Monochromatic light</h2>
+<div class="control" id="wavelengthField"><div class="field"><label for="wavelength">Wavelength, <i>λ</i></label><output for="wavelength" id="waveValue"></output></div><input type="range" id="wavelength" min="400" max="700" value="600" step="1"></div>
+<div class="control"><div class="field"><label for="separation">Slit separation, <i>a</i></label><output for="separation" id="sepValue"></output></div><input type="range" id="separation" min="0.20" max="0.80" value="0.40" step="0.01"></div>
+<div class="control"><div class="field"><label for="distance">Screen distance, <i>D</i></label><output for="distance" id="distValue"></output></div><input type="range" id="distance" min="0.50" max="3" value="2" step="0.05"></div>
+<div class="reading"><span>Fringe spacing, <i>Δy</i></span><strong id="spacing"></strong></div><p class="note">Measured between the centres of two adjacent bright fringes.</p></aside>
+<div class="views"><article><div class="heading"><h2>Experimental set-up</h2><span class="muted">Top view · schematic</span></div>
+<svg class="diagram" viewBox="0 0 620 185" role="img" aria-label="Plane wavefronts reach two narrow slits in phase. Waves from both slits reach the centre of the screen.">
+<defs><marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8" fill="#b8cbd5"/></marker></defs>
+<text x="20" y="25">Incident light</text><text x="159" y="25">Double slit</text><text id="screenLabel" y="25">Screen</text>
+<g id="waves" fill="none" stroke-width="2"></g><path d="M24 91H119" stroke="#b8cbd5" marker-end="url(#arrow)"/>
+<path id="barrier" stroke="#aab9c7" stroke-width="7"/><path id="paths" fill="none" stroke="#a5dad3" stroke-width="1.6" stroke-dasharray="5 4"/>
+<path id="screenLine" stroke="#d5e2ea" stroke-width="4"/><circle id="centre" cy="91" r="4" fill="#fff"/>
+<path id="dimension" stroke="#768fa3" fill="none"/><text id="distanceLabel" y="175" text-anchor="middle"></text><text id="slitLabel" text-anchor="end" x="184" y="97" style="font:italic 18px Georgia">a</text>
+</svg></article>
+<article><div class="heading"><h2>Screen view</h2><span class="muted">Position on screen / mm</span></div>
+<div class="measure"><span id="bracket" class="bracket"><i>Δy</i></span></div>
+<canvas id="pattern" width="1200" height="94" role="img" aria-label="Interference fringes on the screen"></canvas>
+<div class="ruler"><span style="left:0">−15</span><span style="left:16.667%">−10</span><span style="left:33.333%">−5</span><span style="left:50%">0</span><span style="left:66.667%">5</span><span style="left:83.333%">10</span><span style="left:100%">15</span></div>
+<p class="note">At the centre, light from the two slits travels equal distances and interferes constructively.</p></article></div></div>
+<p class="note">Model assumptions: two identical narrow slits illuminated in phase, with a distant screen and small angles. The single-slit diffraction envelope is omitted.</p>
+</main><script>
+'use strict';
+const el = id => document.getElementById(id);
+const stops = [[400,93,30,255],[445,55,54,255],[480,0,160,255],[505,0,239,159],[530,76,250,45],[565,186,247,0],[585,255,215,0],[605,255,137,19],[635,255,43,15],[700,239,13,12]];
+function colour(nm) {
+  const index = Math.max(1, stops.findIndex(stop => nm <= stop[0]));
+  const low = stops[index-1], high = stops[index];
+  const t = (nm-low[0])/(high[0]-low[0]);
+  return low.slice(1).map((value,i) => value+t*(high[i+1]-value));
+}
+// nm, m and mm give the fringe spacing in mm after conversion.
+function fringeSpacing(nm, distance, separation) { return nm*distance/(1000*separation); }
+function intensity(position, period) { return Math.cos(Math.PI*position/period)**2; }
+function drawPattern(nm, spacing) {
+  const canvas = el('pattern'), ctx = canvas.getContext('2d');
+  const width = Math.max(2,Math.round(canvas.clientWidth*(window.devicePixelRatio||1)));
+  canvas.width = width;
+  const channels = colour(nm);
+  for(let x=0;x<width;x++){
+    const position = ((x+0.5)/width-0.5)*30;
+    const brightness = intensity(position, spacing);
+    const rgb = channels.map(value => Math.round(255 * (value / 255 * brightness) ** (1 / 2.2)));
+    ctx.fillStyle = 'rgb(' + rgb.join(',') + ')';
+    ctx.fillRect(x,0,1,canvas.height);
+  }
+}
+function drawDiagram(nm,D,a) {
+  const slit=200, mid=91, gap=19+24*(a-.2)/.6, screen=395+170*(D-.5)/2.5;
+  const top=mid-gap/2,bottom=mid+gap/2;
+  el('barrier').setAttribute('d', 'M200 37V'+(top-3)+' M200 '+(top+3)+'V'+(bottom-3)+' M200 '+(bottom+3)+'V146');
+  el('paths').setAttribute('d','M200 '+top+'L'+screen+' 91L200 '+bottom);
+  el('screenLine').setAttribute('d','M'+screen+' 37V146');
+  el('centre').setAttribute('cx',screen);
+  el('screenLabel').setAttribute('x',screen-24);
+  el('dimension').setAttribute('d','M200 151v8m0 -4H'+screen+'m0 -4v8');
+  el('distanceLabel').setAttribute('x',(slit+screen)/2);
+  el('distanceLabel').textContent='D = '+D.toFixed(2)+' m';
+  const pitch=nm/26;
+  let lines='';
+  for(let x=22;x<178;x+=pitch) lines+='M'+x+' 45V137 ';
+  el('waves').innerHTML='<path d="'+lines+'"/>';
+  el('waves').setAttribute('stroke','rgb('+colour(nm).map(Math.round).join(',')+')');
+}
+function render(){
+  const nm=Number(el('wavelength').value), D=Number(el('distance').value), a=Number(el('separation').value);
+  const spacing=fringeSpacing(nm,D,a);
+  el('waveValue').textContent=nm+' nm'; el('sepValue').textContent=a.toFixed(2)+' mm'; el('distValue').textContent=D.toFixed(2)+' m';
+  el('bracket').style.width=(spacing/30*100)+'%';
+  el('spacing').textContent=spacing.toFixed(2)+' mm';
+  drawPattern(nm,spacing); drawDiagram(nm,D,a);
+}
+for(const id of ['wavelength','distance','separation']) el(id).addEventListener('input',render);
+window.addEventListener('resize',render); render();
+</script></body></html>
