@@ -214,19 +214,29 @@
       byId('photonEquation').innerHTML = (a && a.kind === 'ionisation') || ionised ? 'E<sub>photon</sub> = E<sub>ionisation</sub> + K<sub>electron</sub>' : 'E<sub>photon</sub> = hf = |E<sub>f</sub> − E<sub>i</sub>|';
       drawEnergyDiagram(); render();
     }
+    const compactEnergyDiagram = window.matchMedia('(max-width: 720px)');
     function drawEnergyDiagram() {
+      const compact = compactEnergyDiagram.matches;
+      const layout = compact
+        ? { width: 320, left: 30, right: 127, label: 169, title: 12, limit: 140, transition: 81, electron: 48, font: 16 }
+        : { width: 720, left: 90, right: 430, label: 500, title: 20, limit: 450, transition: 265, electron: 125, font: 15 };
       const y = e => 40 - e * 320 / RYDBERG_EV;
-      let lines = '<text x="20" y="20" fill="#52657d" font-size="15">Energy / eV</text><line x1="90" y1="40" x2="430" y2="40" stroke="#7c8da5" stroke-dasharray="5 4"/><text x="450" y="25" font-size="14" fill="#52657d">0 eV · ionisation limit</text>';
+      byId('energySvg').setAttribute('viewBox', `0 0 ${layout.width} 410`);
+      let lines = `<text x="${layout.title}" y="20" fill="#52657d" font-size="${layout.font}">Energy / eV</text>
+        <line x1="${layout.left}" y1="40" x2="${layout.right}" y2="40" stroke="#7c8da5" stroke-dasharray="5 4"/>
+        <text x="${layout.limit}" y="25" font-size="${layout.font}" fill="#52657d">0 eV · ionisation limit</text>`;
       for (let n = 1; n <= MAX_N; n++) {
         const position = y(energy(n)), labelY = n === 1 ? 360 : 230 - 30 * n;
         const stroke = state.n === n ? '#a06400' : '#8b9cb3';
-        lines += `<line x1="90" y1="${position}" x2="430" y2="${position}" stroke="${stroke}" stroke-width="${state.n === n ? 3 : 1.5}"/><path d="M430 ${position} L490 ${labelY}" fill="none" stroke="#a6b4c6"/><text x="500" y="${labelY+5}" font-size="15" fill="#365372">n = ${n} · ${energy(n).toFixed(2)} eV</text>`;
+        lines += `<line x1="${layout.left}" y1="${position}" x2="${layout.right}" y2="${position}" stroke="${stroke}" stroke-width="${state.n === n ? 3 : 1.5}"/>
+          <path d="M${layout.right} ${position} L${layout.label - 10} ${labelY}" fill="none" stroke="#a6b4c6"/>
+          <text x="${layout.label}" y="${labelY + 5}" font-size="${layout.font}" fill="#365372">n = ${n} · ${energy(n).toFixed(2)} eV</text>`;
       }
       const t = selectedTransition(), a = state.animation;
       const from = t ? t.from : a && a.kind === 'ionisation' ? a.from : null;
       const toEnergy = t ? energy(t.to) : 0;
-      if (from !== null) lines += `<line x1="265" y1="${y(energy(from))}" x2="265" y2="${y(toEnergy)}" stroke="#245cc0" stroke-width="3" marker-end="url(#arrow)"/>`;
-      lines += `<circle cx="125" cy="${y(state.n === null ? 0 : energy(state.n))}" r="6" fill="#a06400"/>`;
+      if (from !== null) lines += `<line x1="${layout.transition}" y1="${y(energy(from))}" x2="${layout.transition}" y2="${y(toEnergy)}" stroke="#245cc0" stroke-width="3" marker-end="url(#arrow)"/>`;
+      lines += `<circle cx="${layout.electron}" cy="${y(state.n === null ? 0 : energy(state.n))}" r="6" fill="#a06400"/>`;
       byId('energyLines').innerHTML = lines;
       byId('energyDescription').textContent = `Energy levels follow minus 13.6 divided by n squared electronvolts. ${state.n === null ? 'The atom is ionised.' : `The electron occupies n equals ${state.n}.`} ${t ? `Selected transition from ${t.from} to ${t.to}.` : ''}`;
     }
@@ -316,6 +326,7 @@
       byId('speed').value = '1'; byId('speedValue').textContent = '1×'; byId('manualEnergy').value = '10.20'; previousTime = null;
       announce('Reset to n = 1. Select a target level, then absorb a photon.'); updateUI();
     });
+    compactEnergyDiagram.addEventListener('change', drawEnergyDiagram);
     document.addEventListener('visibilitychange', () => { previousTime = null; });
     updateUI(); requestAnimationFrame(frame);
   </script>

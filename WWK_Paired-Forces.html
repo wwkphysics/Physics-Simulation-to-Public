@@ -236,22 +236,30 @@ function drawScene(reading){
 function drawGraphs(){
   const canvas=$('graph'),split=!vehicle&&$('layout').value==='split';
   const height=split?405:250;
-  if(canvas.height!==height)canvas.height=height;
-  graph.clearRect(0,0,720,height);
+  const width=canvas.clientWidth;
+  const pixelRatio=Math.min(window.devicePixelRatio||1,2);
+  const bitmapWidth=Math.round(width*pixelRatio),bitmapHeight=Math.round(height*pixelRatio);
+  if(canvas.style.height!==height+'px')canvas.style.height=height+'px';
+  if(canvas.width!==bitmapWidth)canvas.width=bitmapWidth;
+  if(canvas.height!==bitmapHeight)canvas.height=bitmapHeight;
+  graph.setTransform(pixelRatio,0,0,pixelRatio,0,0);
+  graph.clearRect(0,0,width,height);
   const minT=vehicle?start:-.012,maxT=vehicle?end:.038;
   const peak=model.peak/divisor;
   const tickStep=vehicle?50:5;
   const range=!vehicle&&$('fixed').checked?100:Math.ceil(peak*1.12/tickStep)*tickStep;
-  const x=t=>67+(t-minT)/(maxT-minT)*625;
+  const left=Math.min(67,Math.max(48,width*.093)),right=width-28;
+  const x=t=>left+(t-minT)/(maxT-minT)*(right-left);
+  const intervals=width<400?3:5;
   const rows=split?[[22,167,[-1]],[211,356,[1]]]:[[25,198,[-1,1]]];
   rows.forEach(([top,bottom,signs],index)=>{
     const y=f=>(top+bottom)/2-f/range*(bottom-top)/2;
     for(const value of [-range,-range/2,0,range/2,range]){
-      line(graph,67,y(value),692,y(value),value===0?'#879ab4':'#d9e3ef');
-      label(graph,signed(value,Number.isInteger(value)?0:1),57,y(value),'#425975',13,'right');
+      line(graph,left,y(value),right,y(value),value===0?'#879ab4':'#d9e3ef');
+      label(graph,signed(value,Number.isInteger(value)?0:1),left-9,y(value),'#425975',13,'right');
     }
-    for(let i=0;i<=5;i++){
-      const t=minT+(maxT-minT)*i/5;
+    for(let i=0;i<=intervals;i++){
+      const t=minT+(maxT-minT)*i/intervals;
       line(graph,x(t),top,x(t),bottom,'#d9e3ef',1);
       if(index===rows.length-1)label(graph,format(t,vehicle?2:3),x(t),bottom+17,'#425975',13);
     }
@@ -268,9 +276,9 @@ function drawGraphs(){
       graph.stroke();
       circle(graph,x(time),y(sign*atTime(model,time).force/divisor),4,graph.strokeStyle);
     }
-    label(graph,split?(index===0?'Force on A by B / N':'Force on B by A / N'):'Force / '+unit,67,top-11,'#425975',14,'left');
+    label(graph,split?(index===0?'Force on A by B / N':'Force on B by A / N'):'Force / '+unit,left,top-11,'#425975',14,'left');
   });
-  label(graph,'Time from first contact / s',380,height-13,'#425975',15);
+  label(graph,'Time from first contact / s',(left+right)/2,height-13,'#425975',15);
 }
 function render(){
   const r=atTime(model,time);
@@ -320,6 +328,7 @@ if(vehicle){
   for(const id of ['approach','harder','double'])$(id).addEventListener('change',rewind);
   for(const id of ['layout','fixed'])$(id).addEventListener('change',drawGraphs);
 }
+window.addEventListener('resize',drawGraphs);
 rewind();
 </script>
 </body>
